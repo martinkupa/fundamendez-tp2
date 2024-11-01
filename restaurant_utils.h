@@ -3,6 +3,7 @@
 
 #include "generador.h"
 #include "restaurant.h"
+#include "vector_operaciones.h"
 
 #include <inttypes.h>
 
@@ -148,8 +149,7 @@ mesa_t generar_mesa_tentativa(juego_t      *juego,
                               bool         considerar_cocina);
 
 
-void eliminar_objeto(objeto_t *objetos, int *cantidad_objetos, int indice_a_eliminar);
-
+// TODO: documentar
 uint64_t calcular_distancia_manhattan(coordenada_t cord1, coordenada_t cord2);
 
 #endif

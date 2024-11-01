@@ -402,9 +402,8 @@ static void interactuar_con_objetos(juego_t *juego)
 
     for (int i = 0; i < juego->cantidad_mesas; i++)
         if (mozo_alcanza_mesa(&juego->mozo, &juego->mesas[i]))
-            printf("Interactuas: %d", i);
-         
-    // check for each table if they overlap, then interact
+            {/*TODO: tomar/dejar orden*/} 
+    
     int indice_herramienta = posicion_superpone_herramienta(juego, juego->mozo.posicion, false);
     if (indice_herramienta != NO_SUPERPONE)
     {
@@ -438,7 +437,6 @@ static void interactuar_con_objetos(juego_t *juego)
                 break;
         }
     }
-
 }
 
 static bool mozo_alcanza_mesa(const mozo_t *mozo, const mesa_t *mesa)

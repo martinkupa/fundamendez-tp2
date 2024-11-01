@@ -13,9 +13,10 @@ Se debe implementar:
 * implementar funcionalidad mopa
 * ~~implementar boost patines~~
 * implementar cucas y paciencia de las mesas
-* vectores dinamico con pedido_t
-* operaciones de vector con objeto_t
+* ~~vectores dinamico con pedido_t~~
+* ~~operaciones de vector con objeto_t~~
 
 
 ### Preguntas
 * Se puede usar patin y mopa?
+* Se puede usar recalloc

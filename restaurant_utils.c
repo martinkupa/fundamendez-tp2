@@ -27,6 +27,8 @@ const int NO_SUPERPONE = -1;
 
 // Fin constantes
 
+// Funciones del TP1
+
 bool es_posicion_valida(coordenada_t posicion)
 {
     return posicion.fil < MAX_FILAS && posicion.fil >= 0 && posicion.col < MAX_COLUMNAS && posicion.col >= 0;
@@ -218,17 +220,7 @@ mesa_t generar_mesa_tentativa(juego_t      *juego,
     return mesa_tentativa;
 }
 
-void eliminar_objeto(objeto_t *objetos, int *cantidad_objetos, int indice_a_eliminar)
-{
-    assert(objetos != NULL && "objetos no puede ser NULL");
-    for (int i = indice_a_eliminar; i < *cantidad_objetos-1; i++)
-    {
-        objetos[i] = objetos[i+1];
-    }
-    objetos[*cantidad_objetos-1] = (objeto_t){0};
-
-    (*cantidad_objetos)--;
-}
+// Fin funciones del TP1
 
 uint64_t calcular_distancia_manhattan(coordenada_t cord1, coordenada_t cord2)
 {
