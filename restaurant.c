@@ -365,10 +365,10 @@ static void mover_linguini(juego_t      *juego,
         } else
         {
             juego->mozo.posicion = nueva_posicion;
+            juego->movimientos++;
             interactuar_con_objetos(juego);
         }
     } while (juego->mozo.patines_puestos); 
-    juego->movimientos++;
 }
 
 static void cambiar_mopa(juego_t *juego)
