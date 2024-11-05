@@ -46,10 +46,11 @@ static void inicializar_patines(juego_t     *juego,
 static void inicializar_obstaculos(juego_t     *juego, 
                                    generador_t *generador);
 
-/// @brief Mueve el juego->mozo a `nueva_pos`
+/// @brief Intenta mover el juego->mozo a `nueva_pos`
 /// @param delta_posicion la variacion de la posicion en cada eje
+/// @return Un boolean que indica si el movimiento se realizo exitosamente
 /// @pre `juego` no puede ser NULL
-static void mover_linguini(juego_t      *juego, 
+static bool mover_linguini(juego_t      *juego, 
                            coordenada_t delta_posicion);
 
 /// @brief Hace que juego->mozo agarre o suelte la mopa, dependiendo de si la 
@@ -133,23 +134,29 @@ void inicializar_juego(juego_t *juego)
 void realizar_jugada(juego_t *juego, char accion)
 {
     assert(juego != NULL && "juego no puede ser NULL");
-    // TODO: implementar timers
+    
+    bool jugada_realizada = false;
     switch (accion)
     {
         case ACCION_ARRIBA:
-            return mover_linguini(juego, (coordenada_t){.fil=-1,.col=0});
+            jugada_realizada = mover_linguini(juego, (coordenada_t){.fil=-1,.col=0});
+            break;
 
         case ACCION_DERECHA:
-            return mover_linguini(juego, (coordenada_t){.fil=0,.col=+1});
+            jugada_realizada = mover_linguini(juego, (coordenada_t){.fil=0,.col=+1});
+            break;
 
         case ACCION_ABAJO:
-            return mover_linguini(juego, (coordenada_t){.fil=+1,.col=0});
+            jugada_realizada = mover_linguini(juego, (coordenada_t){.fil=+1,.col=0});
+            break;
 
         case ACCION_IZQUIERDA:
-            return mover_linguini(juego, (coordenada_t){.fil=0,.col=-1}); 
+            jugada_realizada = mover_linguini(juego, (coordenada_t){.fil=0,.col=-1}); 
+            break;
 
         case ACCION_MOPA:
-            return cambiar_mopa(juego);
+            cambiar_mopa(juego);
+            break;
 
         case ACCION_PATIN:
             bool puede_usar_patin = juego->mozo.cantidad_patines > 0 && !juego->mozo.patines_puestos;
@@ -158,9 +165,15 @@ void realizar_jugada(juego_t *juego, char accion)
                 juego->mozo.cantidad_patines--;
                 juego->mozo.patines_puestos = true;
             }
-            return; 
+            break; 
+        default:
+            assert(false && "Recibi una accion no valida");
+            fprintf(stderr, "[WARN]: realizar_jugada recibio una jugada invalida\n");
+            return;
     }
-    assert(false && "Recibi una accion no valida"); 
+
+    if (jugada_realizada)
+        spawnear_entidades(juego); 
 }
 
 void mostrar_juego(juego_t juego)
@@ -184,7 +197,7 @@ void mostrar_juego(juego_t juego)
     coordenada_t posicion_mozo = juego.mozo.posicion; 
     buffer[indice((coordenada_t){posicion_mozo.fil, posicion_mozo.col})] = OBJ_LINGUINI;
     system("clear");
-    printf("\n%s\nMovimientos: %d\nDinero: %d\nPatines: %d\n", buffer, juego.movimientos, juego.dinero, juego.mozo.cantidad_patines);
+    printf("\n%s\nMovimientos: %d\nDinero: %d\nPatines: %d\nPedidos: %d\n", buffer, juego.movimientos, juego.dinero, juego.mozo.cantidad_patines, juego.mozo.cantidad_pedidos);
 }
 
 int estado_juego(juego_t juego)
@@ -246,8 +259,8 @@ static void mostrar_mesas(const juego_t *juego,
     for (int i = 0; i < juego->cantidad_mesas; i++)
     {
         const mesa_t *mesa = &juego->mesas[i];
-        for (int j = 0; j < mesa->cantidad_lugares; j++)
-            buffer[indice((coordenada_t){mesa->posicion[j].fil, mesa->posicion[j].col})] = OBJ_MESA;
+        for (int j = 0; j < mesa->cantidad_lugares; j++) 
+            buffer[indice((coordenada_t){mesa->posicion[j].fil, mesa->posicion[j].col})] = j < mesa->cantidad_comensales ? OBJ_COMENSAL : OBJ_MESA;
     }
 }
 static void mostrar_herramientas(const juego_t *juego, 
@@ -348,10 +361,11 @@ static void inicializar_obstaculos(juego_t     *juego,
     }
 }
 
-static void mover_linguini(juego_t      *juego, 
+static bool mover_linguini(juego_t      *juego, 
                            coordenada_t delta_posicion)
 {
     assert(juego != NULL);
+    bool movimiento_exitoso = false;
     do
     {
         coordenada_t nueva_posicion = {
@@ -366,13 +380,17 @@ static void mover_linguini(juego_t      *juego,
         {
             juego->mozo.posicion = nueva_posicion;
             juego->movimientos++;
+            movimiento_exitoso = true;
             interactuar_con_objetos(juego);
         }
     } while (juego->mozo.patines_puestos); 
+
+    return movimiento_exitoso;
 }
 
 static void cambiar_mopa(juego_t *juego)
 {
+    // TODO: implementar eliminado "fisico"
     // estoy asumiendo que en el juego solo hay una unica mopa
     if (juego->mozo.tiene_mopa)
     {
@@ -399,19 +417,33 @@ static void cambiar_mopa(juego_t *juego)
 static void interactuar_con_objetos(juego_t *juego)
 {
     assert(juego != NULL && "juego no puede ser NULL");
-
+    mozo_t *mozo = &juego->mozo;
     for (int i = 0; i < juego->cantidad_mesas; i++)
-        if (mozo_alcanza_mesa(&juego->mozo, &juego->mesas[i]))
-            {/*TODO: tomar/dejar orden*/} 
-    
-    int indice_herramienta = posicion_superpone_herramienta(juego, juego->mozo.posicion, false);
+    {
+        mesa_t *mesa = &juego->mesas[i];
+        if (mozo_alcanza_mesa(mozo, mesa))
+        {
+            if (mesa->cantidad_comensales)
+            { 
+                if (mesa->pedido_tomado)
+                {}
+                else
+                {
+                    pedido_t pedido = tomar_pedido(juego, i);
+                    mozo->pedidos[mozo->cantidad_pedidos++] = pedido;
+                    mesa->pedido_tomado = true;
+                }
+            }
+        } 
+    }
+    int indice_herramienta = posicion_superpone_herramienta(juego, mozo->posicion, false);
     if (indice_herramienta != NO_SUPERPONE)
     {
         const objeto_t *herramienta = &juego->herramientas[indice_herramienta];
         switch (herramienta->tipo)
         {
             case OBJ_PATIN:
-                juego->mozo.cantidad_patines++;
+                mozo->cantidad_patines++;
                 eliminar_objeto(juego->herramientas, &juego->cantidad_herramientas, indice_herramienta);
                 break;
             
@@ -423,14 +455,14 @@ static void interactuar_con_objetos(juego_t *juego)
         }
     }
 
-    int indice_obstaculo = posicion_superpone_obstaculo(juego, juego->mozo.posicion);
+    int indice_obstaculo = posicion_superpone_obstaculo(juego, mozo->posicion);
     if (indice_obstaculo != NO_SUPERPONE)
     {
         const objeto_t *obstaculo = &juego->obstaculos[indice_obstaculo];
         switch (obstaculo->tipo)
         {
             case OBJ_CHARCO:
-                if (juego->mozo.tiene_mopa)
+                if (mozo->tiene_mopa)
                     eliminar_objeto(juego->obstaculos, &juego->cantidad_obstaculos, indice_obstaculo);
                 else
                     /*TODO: perder platos*/{} 

@@ -14,6 +14,7 @@
 #define OBJ_MOPA 'O'
 #define OBJ_MONEDA 'M'
 #define OBJ_PATIN 'P'
+#define OBJ_COMENSAL 'X'
 #define ACCION_ARRIBA 'W'
 #define ACCION_DERECHA 'D'
 #define ACCION_ABAJO 'S'
@@ -21,6 +22,10 @@
 #define ACCION_MOPA 'O'
 #define ACCION_PATIN 'P'
 #define CANTIDAD_ACCIONES 6
+#define PLATO_NAPOLITANA 'M'
+#define PLATO_HAMBURGUESA 'H'
+#define PLATO_PARRILLA 'P'
+#define PLATO_RATATOUILLE 'R'
 
 typedef struct rectangulo {
     coordenada_t arriba_izq;
@@ -50,6 +55,10 @@ extern const uint8_t INDICE_MOPA;
 extern const uint8_t PACIENCIA_MINIMA;
 extern const uint8_t PACIENCIA_MAXIMA;
 extern const int NO_SUPERPONE;
+extern const uint8_t COOLDOWN_CUCARACHAS;
+extern const uint8_t COOLDOWN_COMENSALES;
+extern const uint8_t COMENSALES_MINIMO;
+extern const uint8_t COMENSALES_MAXIMO;
 
 bool es_misma_coordenada(coordenada_t cord1, 
                          coordenada_t cord2);
@@ -148,8 +157,37 @@ mesa_t generar_mesa_tentativa(juego_t      *juego,
                               bool         considerar_mozo,
                               bool         considerar_cocina);
 
-
+// Funciones TP 2
 // TODO: documentar
-uint64_t calcular_distancia_manhattan(coordenada_t cord1, coordenada_t cord2);
+
+
+
+uint64_t calcular_distancia_manhattan(coordenada_t cord1, 
+                                      coordenada_t cord2);
+
+/// @brief Genera el pedido para la mesa indicada por el `indice_mesa`.
+/// @param indice_mesa El indice de la mesa en el vector juego_t::mesas a la 
+///        cual tomar el pedido
+/// @note Para mesas sin comensales se devolvera un pedido vacio, excepto por el
+///       miembro pedido_t::id_mesa que sera inicializado al valor de 
+///       `indice_mesa`
+/// @pre juego no puede ser NULL
+/// @pre indice_mesa debe estar en rango para el vector juego_t::mesas, 
+///      [0, juego_t::cantidad_mesas)
+pedido_t tomar_pedido(juego_t *juego, 
+                      int     indice_mesa);
+
+/// @brief Spawnea entidades en el campo de juego en base a un contador
+/// @pre juego no puede ser NULL
+void spawnear_entidades(juego_t *juego);
+
+/// @brief Dada la `cantidad_comensales`, busca la mesa mas adecuada para el
+///        grupo. Por adecuada se entiende a la mesa libre cuya cantidad de 
+///        lugares sea la minima posible para ubicar a todos los comensales
+/// @return Un puntero a la mesa encontrada, o NULL en caso de que hubiese tal
+///         mesa.
+/// @pre juego no puede ser NULL
+mesa_t *buscar_mesa_adecuada(juego_t      *juego, 
+                             unsigned int cantidad_comensales);
 
 #endif

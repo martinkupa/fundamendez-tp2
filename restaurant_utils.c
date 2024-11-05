@@ -24,6 +24,21 @@ const uint8_t INDICE_MOPA = 0;
 const uint8_t PACIENCIA_MINIMA = 100;
 const uint8_t PACIENCIA_MAXIMA = 200;
 const int NO_SUPERPONE = -1;
+const uint8_t COOLDOWN_CUCARACHAS = 25;
+const uint8_t COOLDOWN_COMENSALES = 15;
+const uint8_t COMENSALES_MINIMO = 1;
+const uint8_t COMENSALES_MAXIMO = 4;
+
+
+const struct {
+    char plato;
+    int tiempo_preparacion;
+} MENU[] = {
+    [0] = {.plato=PLATO_NAPOLITANA, .tiempo_preparacion=30},
+    [1] = {.plato=PLATO_HAMBURGUESA, .tiempo_preparacion=15},
+    [2] = {.plato=PLATO_PARRILLA, .tiempo_preparacion=20},
+    [3] = {.plato=PLATO_RATATOUILLE, .tiempo_preparacion=25}
+};
 
 // Fin constantes
 
@@ -225,4 +240,73 @@ mesa_t generar_mesa_tentativa(juego_t      *juego,
 uint64_t calcular_distancia_manhattan(coordenada_t cord1, coordenada_t cord2)
 {
     return (uint64_t)abs(cord1.fil - cord2.fil) + (uint64_t)abs(cord1.col - cord2.col);
+}
+
+pedido_t tomar_pedido(juego_t *juego, int indice_mesa)
+{
+    assert(juego != NULL && "el juego no puede ser NULL");
+    assert(indice_mesa >= 0 && indice_mesa < juego->cantidad_mesas && "indice_mesa debe estar en rango");
+    pedido_t pedido = {};
+    mesa_t *mesa = &juego->mesas[indice_mesa];
+    for (int i = 0; i < mesa->cantidad_comensales; i++)
+    {
+        int plato = generador_numero_aleatorio(0,4);
+        pedido.platos[i] = MENU[plato].plato;
+        if (pedido.tiempo_preparacion < MENU[plato].tiempo_preparacion)
+            pedido.tiempo_preparacion = MENU[plato].tiempo_preparacion; 
+    }
+    pedido.cantidad_platos = mesa->cantidad_comensales;
+    pedido.id_mesa = indice_mesa;
+    return pedido;
+}
+
+
+void spawnear_entidades(juego_t *juego)
+{
+    assert(juego != NULL && "el juego no puede ser NULL");
+    bool spawnear_comensales = juego->movimientos % COOLDOWN_COMENSALES == 0;
+
+    if (spawnear_comensales)
+    {
+        uint8_t cantidad_comensales = (uint8_t)generador_numero_aleatorio(COMENSALES_MINIMO, COMENSALES_MAXIMO + 1);
+        mesa_t *mesa_adecuada = buscar_mesa_adecuada(juego, cantidad_comensales);
+        if (mesa_adecuada)
+        {
+            mesa_adecuada->pedido_tomado = false;
+            mesa_adecuada->cantidad_comensales = cantidad_comensales; 
+            mesa_adecuada->paciencia = generador_numero_aleatorio(PACIENCIA_MINIMA, PACIENCIA_MAXIMA + 1); 
+        } 
+    }
+
+    bool spawnear_cucarachas = juego->movimientos % COOLDOWN_CUCARACHAS == 0;
+    if (spawnear_cucarachas)
+    {
+        // TODO: spawn cucarachas
+    }
+    
+    
+}
+
+mesa_t *buscar_mesa_adecuada(juego_t *juego, unsigned int cantidad_comensales)
+{
+    assert(juego != NULL && "el juego no puede ser NULL");
+    mesa_t *mejor_mesa = NULL;
+    int64_t asientos_libres_mejor_mesa = INT64_MAX;
+    for (int i = 0; i < juego->cantidad_mesas; i++)
+    {
+        mesa_t *mesa_actual = &juego->mesas[i];
+        bool mesa_ocupada = mesa_actual->cantidad_comensales > 0;
+        if (!mesa_ocupada)
+        {
+            int asientos_libres = mesa_actual->cantidad_lugares - (int)cantidad_comensales;
+            bool hay_lugar_para_todos = asientos_libres >= 0;
+            bool es_mejor_mesa = hay_lugar_para_todos && asientos_libres < asientos_libres_mejor_mesa;
+            if (es_mejor_mesa)
+            {
+                asientos_libres_mejor_mesa = asientos_libres;
+                mejor_mesa = mesa_actual;
+            } 
+        } 
+    }
+    return mejor_mesa;
 }

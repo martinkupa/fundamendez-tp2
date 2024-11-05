@@ -1,5 +1,5 @@
 Se debe implementar:
-* Llegada de comensales
+* ~~Llegada de comensales~~
 * Interacciones con 
     * charcos,  WIP
     * cucarachas, 
@@ -9,7 +9,7 @@ Se debe implementar:
     * cocina
     * ~~monedas~~
 * Desocupacion de la mesa
-* Implementar pedidos (tabla?)
+* ~~Implementar pedidos (tabla?)~~
 * implementar funcionalidad mopa
 * ~~implementar boost patines~~
 * implementar cucas y paciencia de las mesas
