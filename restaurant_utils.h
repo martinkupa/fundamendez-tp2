@@ -190,4 +190,8 @@ void spawnear_entidades(juego_t *juego);
 mesa_t *buscar_mesa_adecuada(juego_t      *juego, 
                              unsigned int cantidad_comensales);
 
+/// @return La cantidad de comensales esperando su pedido
+/// @pre juego no puede ser NULL
+unsigned int calcular_comensales(const juego_t *juego);
+
 #endif

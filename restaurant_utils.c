@@ -310,3 +310,11 @@ mesa_t *buscar_mesa_adecuada(juego_t *juego, unsigned int cantidad_comensales)
     }
     return mejor_mesa;
 }
+
+unsigned int calcular_comensales(const juego_t *juego)
+{
+    uint8_t cantidad_comensales = 0;
+    for (int i = 0; i < juego->cantidad_mesas; i++)
+        cantidad_comensales += (uint8_t)juego->mesas[i].cantidad_comensales;
+    return cantidad_comensales;
+}

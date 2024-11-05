@@ -1,5 +1,6 @@
 #include "restaurant.h"
 #include "restaurant_utils.h"
+#include "restaurant_io.h"
 #include "generador.h"
 
 #include <stdlib.h>
@@ -59,35 +60,12 @@ static bool mover_linguini(juego_t      *juego,
 /// @pre `juego` no debe ser NULL
 static void cambiar_mopa(juego_t *juego);
 
-/// @brief Convierte filas y columnas del tablero a un indice lineal. Si C 
-///        tuviera lambas esto seria una lambda en mostrar_juego, o si pudiera
-///        usar funciones macros esto seria un #define
-/// @return (fila*MAX_COLUMNAS)+columna
-/// @note En un principio habia implementado esto con type punning pero 
-///       -fanalyzer se quejaba
-static size_t indice(coordenada_t coordenada);
-
-/// @brief Dibuja las mesas en el buffer
-/// @pre juego != NULL
-/// @pre buffer != NULL
-static void mostrar_mesas(const juego_t *juego, 
-                          char          *buffer);
-/// @brief Dibuja las herramientas en el buffer
-/// @pre juego != NULL
-/// @pre buffer != NULL
-static void mostrar_herramientas(const juego_t *juego, 
-                                 char           *buffer);
-
-/// @brief Dibuja los obstaculos en el buffer
-/// @pre juego != NULL
-/// @pre buffer != NULL
-static void mostrar_obstaculos(const juego_t *juego, 
-                               char          *buffer);
-
 // Fin funciones del TP1
 
+// TODO implementar y modularizar
 //static void interactuar_con_herramienta(juego_t *juego, objeto_t *herramienta);
 //static void interactuar_con_obstaculo(juego_t *juego, objeto_t *obstaculo);
+// TODO documentar
 static void interactuar_con_objetos(juego_t *juego);
 static bool mozo_alcanza_mesa(const mozo_t *mozo, const mesa_t *mesa);
 
@@ -180,24 +158,24 @@ void mostrar_juego(juego_t juego)
 {
     char buffer[MAX_FILAS*(MAX_COLUMNAS+1)+1];
     const uint16_t LARGO_BUF = MAX_FILAS*(MAX_COLUMNAS+1)+1;
-    memset(buffer, '.', LARGO_BUF-1);
-    buffer[LARGO_BUF-1] = '\0';
 
-    for (int fila = 0; fila < MAX_FILAS; fila++)
-        buffer[indice((coordenada_t){fila, MAX_COLUMNAS})] = '\n';
-    
-    mostrar_mesas(&juego, buffer);
+    construir_string_terreno_juego(&juego, LARGO_BUF, buffer);
 
-    buffer[indice((coordenada_t){juego.cocina.posicion.fil, juego.cocina.posicion.col})] = OBJ_COCINA;
+    unsigned int cantidad_comensales = calcular_comensales(&juego);
+    printf("\n%s\n"
+            "%s%-20d%s%-20d%s%-20d\n"
+            "%s%-16d%s%-20u\n"
+            "%s%-14d%s%-20d\n",
+            buffer, 
+            "Movimientos: ", juego.movimientos, "Dinero: ", juego.dinero, "Patines: ", juego.mozo.cantidad_patines,
+            "Pedidos tomados: ", juego.mozo.cantidad_pedidos, "Comensales: ", cantidad_comensales,
+            "Platos en bandeja: ", juego.mozo.cantidad_bandeja, "Platos en cocina: ", juego.cocina.cantidad_listos);
 
-    mostrar_herramientas(&juego, buffer);
+    if (juego.mozo.tiene_mopa)
+        printf("Tienes la mopa en mano\n");
 
-    mostrar_obstaculos(&juego, buffer);
-
-    coordenada_t posicion_mozo = juego.mozo.posicion; 
-    buffer[indice((coordenada_t){posicion_mozo.fil, posicion_mozo.col})] = OBJ_LINGUINI;
-    system("clear");
-    printf("\n%s\nMovimientos: %d\nDinero: %d\nPatines: %d\nPedidos: %d\n", buffer, juego.movimientos, juego.dinero, juego.mozo.cantidad_patines, juego.mozo.cantidad_pedidos);
+    if (juego.mozo.patines_puestos)
+        printf("Tienes los patines puestos\n"); 
 }
 
 int estado_juego(juego_t juego)
@@ -218,11 +196,6 @@ int estado_juego(juego_t juego)
 // Funciones estaticas
 
 // Funciones del TP1
-
-static size_t indice(coordenada_t coordenada)
-{
-    return (size_t)((coordenada.fil*(MAX_COLUMNAS+1))+coordenada.col);
-}
 
 static void inicializar_mesas(juego_t     *juego, 
                               generador_t *generador)
@@ -251,47 +224,6 @@ static void inicializar_mesas(juego_t     *juego,
     }
 }
 
-static void mostrar_mesas(const juego_t *juego, 
-                          char          *buffer)
-{
-    assert(juego != NULL && "El juego no debe ser NULL");
-    assert(buffer != NULL && "El buffer no debe ser NULL");
-    for (int i = 0; i < juego->cantidad_mesas; i++)
-    {
-        const mesa_t *mesa = &juego->mesas[i];
-        for (int j = 0; j < mesa->cantidad_lugares; j++) 
-            buffer[indice((coordenada_t){mesa->posicion[j].fil, mesa->posicion[j].col})] = j < mesa->cantidad_comensales ? OBJ_COMENSAL : OBJ_MESA;
-    }
-}
-static void mostrar_herramientas(const juego_t *juego, 
-                                 char          *buffer)
-{
-    assert(juego != NULL && "El juego no debe ser NULL");
-    assert(buffer != NULL && "El buffer no debe ser NULL");
-    if (!juego->mozo.tiene_mopa)
-    {
-        assert(juego->herramientas[0].tipo == OBJ_MOPA);
-        objeto_t mopa = juego->herramientas[0];
-        buffer[indice((coordenada_t){mopa.posicion.fil, mopa.posicion.col})] = mopa.tipo;
-    }
-
-    for (int i = 1; i < juego->cantidad_herramientas; i++)
-    {
-        const objeto_t *herramienta = &juego->herramientas[i];
-        buffer[indice((coordenada_t){herramienta->posicion.fil, herramienta->posicion.col})] = herramienta->tipo;
-    }
-}
-static void mostrar_obstaculos(const juego_t *juego, 
-                               char          *buffer)
-{
-    assert(juego != NULL && "El juego no debe ser NULL");
-    assert(buffer != NULL && "El buffer no debe ser NULL");
-    for (int i = 0; i < juego->cantidad_obstaculos; i++)
-    {
-        const objeto_t *obstaculo = &juego->obstaculos[i];
-        buffer[indice((coordenada_t){obstaculo->posicion.fil, obstaculo->posicion.col})] = obstaculo->tipo;
-    }
-}
 static void inicializar_mopa(juego_t     *juego, 
                              generador_t *generador)
 {
