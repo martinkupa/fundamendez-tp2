@@ -194,4 +194,11 @@ mesa_t *buscar_mesa_adecuada(juego_t      *juego,
 /// @pre juego no puede ser NULL
 unsigned int calcular_comensales(const juego_t *juego);
 
+// TODO documentar
+
+void interactuar_con_cocina(mozo_t   *mozo, 
+                            cocina_t *cocina);
+
+void interactuar_con_mesas(juego_t *juego);
+
 #endif

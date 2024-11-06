@@ -25,6 +25,8 @@ int main(void)
     } while (!juego_terminado);
 
     bool juego_ganado = estado_juego(juego) == GANO;
+    destruir_juego(&juego);
+
     printf(juego_ganado?"Ganaste\n":"Perdiste\n"); 
     return 0;
 }

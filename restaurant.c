@@ -67,7 +67,6 @@ static void cambiar_mopa(juego_t *juego);
 //static void interactuar_con_obstaculo(juego_t *juego, objeto_t *obstaculo);
 // TODO documentar
 static void interactuar_con_objetos(juego_t *juego);
-static bool mozo_alcanza_mesa(const mozo_t *mozo, const mesa_t *mesa);
 
 
 // Fin declaraciones estaticas
@@ -163,13 +162,13 @@ void mostrar_juego(juego_t juego)
 
     unsigned int cantidad_comensales = calcular_comensales(&juego);
     printf("\n%s\n"
-            "%s%-20d%s%-20d%s%-20d\n"
+            "%s%-20d%s%-20d%s%-20d%s%-20d\n"
             "%s%-16d%s%-20u\n"
             "%s%-14d%s%-20d\n",
             buffer, 
-            "Movimientos: ", juego.movimientos, "Dinero: ", juego.dinero, "Patines: ", juego.mozo.cantidad_patines,
-            "Pedidos tomados: ", juego.mozo.cantidad_pedidos, "Comensales: ", cantidad_comensales,
-            "Platos en bandeja: ", juego.mozo.cantidad_bandeja, "Platos en cocina: ", juego.cocina.cantidad_listos);
+            "Movimientos: ", juego.movimientos, "Dinero: ", juego.dinero, "Patines: ", juego.mozo.cantidad_patines, "Comensales: ", cantidad_comensales,
+            "Pedidos tomados: ", juego.mozo.cantidad_pedidos, "Platos en bandeja: ", juego.mozo.cantidad_bandeja, 
+            "Pedidos en cocina: ", juego.cocina.cantidad_preparacion, "Platos en cocina: ", juego.cocina.cantidad_listos);
 
     if (juego.mozo.tiene_mopa)
         printf("Tienes la mopa en mano\n");
@@ -190,6 +189,15 @@ int estado_juego(juego_t juego)
 }
 
 // Fin funciones del TP1
+
+void destruir_juego(juego_t *juego)
+{
+    assert(juego != NULL && "juego no puede ser NULL");
+    free(juego->cocina.platos_listos);
+    juego->cocina.platos_listos = NULL;
+    free(juego->cocina.platos_preparacion);
+    juego->cocina.platos_preparacion = NULL;
+}
 
 // Fin funciones publicas
 
@@ -333,7 +341,8 @@ static void cambiar_mopa(juego_t *juego)
         juego->mozo.tiene_mopa = false;
         assert(juego->herramientas[INDICE_MOPA].tipo == OBJ_MOPA && "La mopa debe estar en la posicion 0");
         juego->herramientas[INDICE_MOPA].posicion = juego->mozo.posicion;
-    } else {
+    } else 
+    {
         assert(juego->herramientas[INDICE_MOPA].tipo == OBJ_MOPA && "La mopa debe estar en la posicion 0");
         coordenada_t posicion_mopa = juego->herramientas[INDICE_MOPA].posicion;
         if (es_misma_coordenada(juego->mozo.posicion, posicion_mopa))
@@ -349,25 +358,9 @@ static void cambiar_mopa(juego_t *juego)
 static void interactuar_con_objetos(juego_t *juego)
 {
     assert(juego != NULL && "juego no puede ser NULL");
+    interactuar_con_mesas(juego);    
+
     mozo_t *mozo = &juego->mozo;
-    for (int i = 0; i < juego->cantidad_mesas; i++)
-    {
-        mesa_t *mesa = &juego->mesas[i];
-        if (mozo_alcanza_mesa(mozo, mesa))
-        {
-            if (mesa->cantidad_comensales)
-            { 
-                if (mesa->pedido_tomado)
-                {}
-                else
-                {
-                    pedido_t pedido = tomar_pedido(juego, i);
-                    mozo->pedidos[mozo->cantidad_pedidos++] = pedido;
-                    mesa->pedido_tomado = true;
-                }
-            }
-        } 
-    }
     int indice_herramienta = posicion_superpone_herramienta(juego, mozo->posicion, false);
     if (indice_herramienta != NO_SUPERPONE)
     {
@@ -401,18 +394,12 @@ static void interactuar_con_objetos(juego_t *juego)
                 break;
         }
     }
+
+    bool interactuar_cocina = es_misma_coordenada(mozo->posicion, juego->cocina.posicion);
+    if (interactuar_cocina)
+        interactuar_con_cocina(mozo, &juego->cocina); 
 }
 
-static bool mozo_alcanza_mesa(const mozo_t *mozo, const mesa_t *mesa)
-{
-    assert(mozo != NULL && "mozo no puede ser NULL");
-    assert(mesa != NULL && "mesa no puede ser NULL");
-    bool alcanza = false;
-    int i = 0;
-    while (!alcanza && i < mesa->cantidad_lugares)
-        if (calcular_distancia_manhattan(mozo->posicion, mesa->posicion[i++]) <= 1)
-            alcanza = true; 
-    return alcanza; 
-}
+
 // Fin funciones estaticas
 

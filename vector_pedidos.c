@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <assert.h>
+#include <errno.h>
 #include "vector_pedidos.h"
 #include "vector_operaciones.h"
 
@@ -18,7 +19,6 @@ vector_pedidos_t agregar_pedido_dinamico(vector_pedidos_t vector,
                                          int              *cantidad_pedidos, 
                                          pedido_t         pedido_nuevo)
 {
-    assert(vector != NULL && "vector no puede ser NULL");
     assert(cantidad_pedidos != NULL && "cantidad_pedidos no puede ser NULL");
     
     size_t capacidad_requerida = (size_t)(*cantidad_pedidos+1)*sizeof(pedido_t);
@@ -40,14 +40,21 @@ vector_pedidos_t eliminar_pedido_dinamico(vector_pedidos_t vector,
 {
     assert(vector != NULL && "vector no puede ser NULL");
     assert(cantidad_pedidos != NULL && "cantidad_pedidos no puede ser NULL");
+    assert(indice_pedido >= 0 && indice_pedido < *cantidad_pedidos && "indice_pedido debe estar en rango");
     
     pedido_t copia_temporal = vector[*cantidad_pedidos-1];
 
     size_t capacidad_requerida = (size_t)(*cantidad_pedidos-1)*sizeof(pedido_t);
+
     vector_pedidos_t buffer_acortado = realloc(vector, capacidad_requerida);
 
     if (!buffer_acortado)
+    {
+        bool vector_liberado = errno != ENOMEM;
+        if (vector_liberado)
+            *cantidad_pedidos = 0;    
         return NULL;
+    }
 
     vector = NULL;
 

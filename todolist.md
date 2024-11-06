@@ -6,7 +6,7 @@ Se debe implementar:
     * mesas, WIP
         * ~~interaccion~~
         * funcionalidad 
-    * cocina
+    * WIP cocina
     * ~~monedas~~
 * Desocupacion de la mesa
 * ~~Implementar pedidos (tabla?)~~

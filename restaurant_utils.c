@@ -1,7 +1,9 @@
 #include "restaurant_utils.h"
+#include "vector_pedidos.h"
 #include <math.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 
 
 // Definicion de constantes.
@@ -41,6 +43,13 @@ const struct {
 };
 
 // Fin constantes
+
+/// @brief Libera los recursos y termina el programa con un codigo de error y un
+///        `mensaje` en stderr
+static void terminar_fallo(cocina_t *cocina, const char *mensaje);
+
+//TODO documentar
+static bool mozo_alcanza_mesa(const mozo_t *mozo, const mesa_t *mesa);
 
 // Funciones del TP1
 
@@ -237,12 +246,14 @@ mesa_t generar_mesa_tentativa(juego_t      *juego,
 
 // Fin funciones del TP1
 
-uint64_t calcular_distancia_manhattan(coordenada_t cord1, coordenada_t cord2)
+uint64_t calcular_distancia_manhattan(coordenada_t cord1, 
+                                      coordenada_t cord2)
 {
     return (uint64_t)abs(cord1.fil - cord2.fil) + (uint64_t)abs(cord1.col - cord2.col);
 }
 
-pedido_t tomar_pedido(juego_t *juego, int indice_mesa)
+pedido_t tomar_pedido(juego_t *juego, 
+                      int     indice_mesa)
 {
     assert(juego != NULL && "el juego no puede ser NULL");
     assert(indice_mesa >= 0 && indice_mesa < juego->cantidad_mesas && "indice_mesa debe estar en rango");
@@ -282,12 +293,11 @@ void spawnear_entidades(juego_t *juego)
     if (spawnear_cucarachas)
     {
         // TODO: spawn cucarachas
-    }
-    
-    
+    } 
 }
 
-mesa_t *buscar_mesa_adecuada(juego_t *juego, unsigned int cantidad_comensales)
+mesa_t *buscar_mesa_adecuada(juego_t      *juego, 
+                             unsigned int cantidad_comensales)
 {
     assert(juego != NULL && "el juego no puede ser NULL");
     mesa_t *mejor_mesa = NULL;
@@ -317,4 +327,87 @@ unsigned int calcular_comensales(const juego_t *juego)
     for (int i = 0; i < juego->cantidad_mesas; i++)
         cantidad_comensales += (uint8_t)juego->mesas[i].cantidad_comensales;
     return cantidad_comensales;
+}
+
+void interactuar_con_cocina(mozo_t   *mozo, 
+                            cocina_t *cocina)
+{
+    if (mozo->tiene_mopa)
+        return;
+
+    for (int i = mozo->cantidad_pedidos-1; i >= 0; i--)
+    {
+        vector_pedidos_t nuevo_vector = agregar_pedido_dinamico(cocina->platos_preparacion, &cocina->cantidad_preparacion, mozo->pedidos[i]);
+        if (!nuevo_vector)
+            terminar_fallo(cocina, "Sin memoria! Terminando...");
+        else 
+            cocina->platos_preparacion = nuevo_vector;
+        eliminar_pedido(mozo->pedidos, &mozo->cantidad_pedidos, i);
+    }
+
+    bool cocina_agotada = cocina->cantidad_listos <= 0;
+    bool bandeja_llena = mozo->cantidad_bandeja >= MAX_BANDEJA;
+    while (!cocina_agotada && !bandeja_llena)
+    {
+        pedido_t pedido_listo = cocina->platos_listos[cocina->cantidad_listos-1];
+        vector_pedidos_t nuevo_vector = eliminar_pedido_dinamico(cocina->platos_listos, &cocina->cantidad_listos, cocina->cantidad_listos-1);
+        bool sin_memoria = !nuevo_vector && cocina->cantidad_listos != 0;
+        if (sin_memoria)
+            terminar_fallo(cocina, "Sin memoria! Terminando...");
+        cocina->platos_listos = nuevo_vector;
+        mozo->bandeja[mozo->cantidad_bandeja++] = pedido_listo;
+
+        cocina_agotada = cocina->cantidad_listos <= 0;
+        bandeja_llena = mozo->cantidad_bandeja >= MAX_BANDEJA;
+    }   
+}
+
+void interactuar_con_mesas(juego_t *juego)
+{
+    assert(juego != NULL && "el juego no puede ser NULL");
+    mozo_t *mozo = &juego->mozo;
+    for (int i = 0; i < juego->cantidad_mesas; i++)
+    {
+        mesa_t *mesa = &juego->mesas[i];
+        bool hay_comensales = mesa->cantidad_comensales;
+        bool espacio_pedido_nuevo = mozo->cantidad_pedidos < MAX_PEDIDOS;
+        if (hay_comensales && mozo_alcanza_mesa(mozo, mesa))
+        {
+            if (mesa->pedido_tomado)
+            {}
+            else if (espacio_pedido_nuevo)
+            {
+                pedido_t pedido = tomar_pedido(juego, i);
+                mozo->pedidos[mozo->cantidad_pedidos++] = pedido;
+                mesa->pedido_tomado = true;
+            }
+        }
+    }
+}
+
+
+static bool mozo_alcanza_mesa(const mozo_t *mozo, const mesa_t *mesa)
+{
+    assert(mozo != NULL && "mozo no puede ser NULL");
+    assert(mesa != NULL && "mesa no puede ser NULL");
+    bool alcanza = false;
+    int i = 0;
+    while (!alcanza && i < mesa->cantidad_lugares)
+        if (calcular_distancia_manhattan(mozo->posicion, mesa->posicion[i++]) <= 1)
+            alcanza = true; 
+    return alcanza; 
+}
+
+static void terminar_fallo(cocina_t *cocina, const char *mensaje)
+{
+    if (cocina)
+    {
+        free(cocina->platos_preparacion);
+        cocina->platos_preparacion = NULL;
+        free(cocina->platos_listos);
+        cocina->platos_listos = NULL;
+    }
+    
+    fprintf(stderr, "[FATAL]: %s\n", mensaje);
+    exit(1);
 }
