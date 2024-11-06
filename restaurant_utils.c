@@ -30,6 +30,9 @@ const uint8_t COOLDOWN_CUCARACHAS = 25;
 const uint8_t COOLDOWN_COMENSALES = 15;
 const uint8_t COMENSALES_MINIMO = 1;
 const uint8_t COMENSALES_MAXIMO = 4;
+const uint8_t PENALIZACION_CUCARACHA = 2;
+const uint8_t RANGO_CUCARACHAS = 2;
+const unsigned int ALCANCE_MOZO = 1;
 
 
 const struct {
@@ -44,11 +47,10 @@ const struct {
 
 // Fin constantes
 
-/// @brief Libera los recursos y termina el programa con un codigo de error y un
-///        `mensaje` en stderr
-static void terminar_fallo(cocina_t *cocina, const char *mensaje);
-
-//TODO documentar
+/// @brief Comprueba si el mozo esta en el rango como para interactuar con la 
+///        mesa
+/// @pre mozo no puede ser NULL
+/// @pre mesa no puede ser NULL
 static bool mozo_alcanza_mesa(const mozo_t *mozo, const mesa_t *mesa);
 
 // Funciones del TP1
@@ -369,7 +371,7 @@ void interactuar_con_mesas(juego_t *juego)
     for (int i = 0; i < juego->cantidad_mesas; i++)
     {
         mesa_t *mesa = &juego->mesas[i];
-        bool hay_comensales = mesa->cantidad_comensales;
+        bool hay_comensales = mesa->cantidad_comensales > 0;
         bool espacio_pedido_nuevo = mozo->cantidad_pedidos < MAX_PEDIDOS;
         if (hay_comensales && mozo_alcanza_mesa(mozo, mesa))
         {
@@ -385,20 +387,19 @@ void interactuar_con_mesas(juego_t *juego)
     }
 }
 
-
-static bool mozo_alcanza_mesa(const mozo_t *mozo, const mesa_t *mesa)
+bool posicion_dentro_rango_mesa(coordenada_t coordenada, 
+                                const mesa_t *mesa,
+                                unsigned int rango)
 {
-    assert(mozo != NULL && "mozo no puede ser NULL");
     assert(mesa != NULL && "mesa no puede ser NULL");
-    bool alcanza = false;
+    bool en_rango = false;
     int i = 0;
-    while (!alcanza && i < mesa->cantidad_lugares)
-        if (calcular_distancia_manhattan(mozo->posicion, mesa->posicion[i++]) <= 1)
-            alcanza = true; 
-    return alcanza; 
+    while (!en_rango && i < mesa->cantidad_lugares)
+        en_rango = calcular_distancia_manhattan(coordenada, mesa->posicion[i++]) <= rango;
+    return en_rango;
 }
 
-static void terminar_fallo(cocina_t *cocina, const char *mensaje)
+void terminar_fallo(cocina_t *cocina, const char *mensaje)
 {
     if (cocina)
     {
@@ -411,3 +412,11 @@ static void terminar_fallo(cocina_t *cocina, const char *mensaje)
     fprintf(stderr, "[FATAL]: %s\n", mensaje);
     exit(1);
 }
+
+static bool mozo_alcanza_mesa(const mozo_t *mozo, const mesa_t *mesa)
+{
+    assert(mozo != NULL && "mozo no puede ser NULL");
+    assert(mesa != NULL && "mesa no puede ser NULL");
+    return posicion_dentro_rango_mesa(mozo->posicion, mesa, ALCANCE_MOZO); 
+}
+

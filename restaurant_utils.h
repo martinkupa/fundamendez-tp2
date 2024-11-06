@@ -15,6 +15,7 @@
 #define OBJ_MONEDA 'M'
 #define OBJ_PATIN 'P'
 #define OBJ_COMENSAL 'X'
+#define OBJ_CUCARACHA 'U'
 #define ACCION_ARRIBA 'W'
 #define ACCION_DERECHA 'D'
 #define ACCION_ABAJO 'S'
@@ -59,6 +60,9 @@ extern const uint8_t COOLDOWN_CUCARACHAS;
 extern const uint8_t COOLDOWN_COMENSALES;
 extern const uint8_t COMENSALES_MINIMO;
 extern const uint8_t COMENSALES_MAXIMO;
+extern const uint8_t PENALIZACION_CUCARACHA;
+extern const uint8_t RANGO_CUCARACHAS;
+extern const unsigned int ALCANCE_MOZO;
 
 bool es_misma_coordenada(coordenada_t cord1, 
                          coordenada_t cord2);
@@ -193,6 +197,19 @@ mesa_t *buscar_mesa_adecuada(juego_t      *juego,
 /// @return La cantidad de comensales esperando su pedido
 /// @pre juego no puede ser NULL
 unsigned int calcular_comensales(const juego_t *juego);
+
+/// @brief Libera los recursos y termina el programa con un codigo de error y un
+///        `mensaje` en stderr
+void terminar_fallo(cocina_t *cocina, const char *mensaje);
+
+/// @brief Comprueba si la distancia manhattan entre `coordenada` y `mesa` es
+///        menor o igual a `rango` (i.e, si esta en rango)
+/// @pre mesa no puede ser NULL
+bool posicion_dentro_rango_mesa(coordenada_t coordenada, 
+                                const mesa_t *mesa,
+                                unsigned int rango);
+
+
 
 // TODO documentar
 

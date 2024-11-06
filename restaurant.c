@@ -1,6 +1,7 @@
 #include "restaurant.h"
 #include "restaurant_utils.h"
 #include "restaurant_io.h"
+#include "vector_pedidos.h"
 #include "generador.h"
 
 #include <stdlib.h>
@@ -65,9 +66,34 @@ static void cambiar_mopa(juego_t *juego);
 // TODO implementar y modularizar
 //static void interactuar_con_herramienta(juego_t *juego, objeto_t *herramienta);
 //static void interactuar_con_obstaculo(juego_t *juego, objeto_t *obstaculo);
+
 // TODO documentar
 static void interactuar_con_objetos(juego_t *juego);
 
+static int cantidad_cucarachas_cerca(const juego_t *juego, 
+                                     const mesa_t  *mesa);
+
+static void disminuir_paciencia_comensales(juego_t *juego);
+
+//static void cocinar_platillos(mesa_t *mesa);
+
+/// @brief Elimina los pedidos asociados a `indice_mesa` del vector `platillos` 
+/// @return true si la operacion fue exitosa, o false si hubo errores al
+///         reservar memoria
+/// @pre platillos no debe ser NULL
+/// @pre cantidad_platillos no debe ser NULL
+static bool borrar_platillos_dinamicos_por_mesa(vector_pedidos_t *platillos,
+                                                int              *cantidad_platillos, 
+                                                int              indice_mesa);
+
+/// @brief Libera una mesa eliminando los comensales y los pedidos asociados a 
+///        estos
+/// @param indice_mesa El indice de la mesa a eliminar en el vector 
+///        juego_t::mesas
+/// @pre juego no debe ser NULL
+/// @pre indice_mesa debe estar en el rango de [0, juego->cantidad_mesas)
+static void eliminar_comensales(juego_t *juego,
+                                int     indice_mesa);
 
 // Fin declaraciones estaticas
 
@@ -145,13 +171,15 @@ void realizar_jugada(juego_t *juego, char accion)
             break; 
         default:
             assert(false && "Recibi una accion no valida");
-            fprintf(stderr, "[WARN]: realizar_jugada recibio una jugada invalida\n");
+            fprintf(stderr, "[WARN]: realizar_jugada() recibio una jugada invalida\n");
             return;
     }
 
     if (jugada_realizada)
     {
         juego->movimientos++;
+        disminuir_paciencia_comensales(juego);
+        //cocinar_platillos(juego->cocina);
         spawnear_entidades(juego); 
     }
 }
@@ -402,6 +430,85 @@ static void interactuar_con_objetos(juego_t *juego)
         interactuar_con_cocina(mozo, &juego->cocina); 
 }
 
+static int cantidad_cucarachas_cerca(const juego_t *juego, 
+                                     const mesa_t  *mesa)
+{
+    int cantidad_cucarachas = 0;
+    for (int i = 0; i < juego->cantidad_obstaculos; i++)
+    {
+        const objeto_t *obstaculo = &juego->obstaculos[i++];
+        if (obstaculo->tipo == OBJ_CUCARACHA)
+            cantidad_cucarachas += posicion_dentro_rango_mesa(obstaculo->posicion, mesa, RANGO_CUCARACHAS);
+    }
 
+    return cantidad_cucarachas; 
+}
+
+static void disminuir_paciencia_comensales(juego_t *juego)
+{
+    for (int i = 0; i < juego->cantidad_mesas; i++)
+    {
+        mesa_t *mesa = &juego->mesas[i];
+        bool hay_comensales = mesa->cantidad_comensales > 0;
+        if (hay_comensales)
+            mesa->paciencia -= 1 + PENALIZACION_CUCARACHA * cantidad_cucarachas_cerca(juego, mesa);
+        
+        bool paciencia_agotada = mesa->paciencia <= 0;
+        if (paciencia_agotada)
+            eliminar_comensales(juego, i); 
+    }
+    
+}
+
+
+static bool borrar_platillos_dinamicos_por_mesa(vector_pedidos_t *platillos,
+                                                int              *cantidad_platillos, 
+                                                int              indice_mesa)
+{
+    assert(platillos != NULL && "platillos no puede ser NULL");
+    assert(cantidad_platillos != NULL && "cantidad_platillos no debe ser NULL");
+    for (int i = 0; i < *cantidad_platillos; i++)
+    {
+        pedido_t *platillo_preparacion = &(*platillos)[i];
+        if (platillo_preparacion->id_mesa == indice_mesa)
+        {
+            vector_pedidos_t nuevo_vector = eliminar_pedido_dinamico(*platillos, cantidad_platillos, i); 
+            bool sin_memoria = nuevo_vector == NULL && *cantidad_platillos != 0;
+            if (sin_memoria)
+                return false;
+            *platillos = nuevo_vector; 
+        }
+    }
+    return true;
+}
+
+static void eliminar_comensales(juego_t *juego,
+                                int     indice_mesa)
+{
+    assert(juego != NULL && "juego no puede ser NULL");
+    assert(indice_mesa >= 0 && indice_mesa < juego->cantidad_mesas && "indice_mesa no esta en rango");
+    mesa_t *mesa = &juego->mesas[indice_mesa];
+    mesa->cantidad_comensales = 0;
+    mesa->paciencia = 0;
+    mesa->pedido_tomado = false;
+
+    mozo_t *mozo = &juego->mozo;
+    for (int i = 0; i < mozo->cantidad_pedidos; i++)
+    {
+        pedido_t *pedido = &mozo->pedidos[i];
+        if (pedido->id_mesa == indice_mesa)
+            eliminar_pedido(mozo->pedidos, &mozo->cantidad_pedidos, i);
+    }
+
+    cocina_t *cocina = &juego->cocina;
+    bool exito = borrar_platillos_dinamicos_por_mesa(&cocina->platos_preparacion, &cocina->cantidad_preparacion, indice_mesa);
+    if (!exito)
+        terminar_fallo(cocina, "Sin memoria! Terminando...");
+ 
+    exito = borrar_platillos_dinamicos_por_mesa(&cocina->platos_listos, &cocina->cantidad_listos, indice_mesa);
+    if (!exito) 
+        terminar_fallo(cocina, "Sin memoria! Terminando...");
+    
+}
 // Fin funciones estaticas
 
