@@ -150,7 +150,10 @@ void realizar_jugada(juego_t *juego, char accion)
     }
 
     if (jugada_realizada)
+    {
+        juego->movimientos++;
         spawnear_entidades(juego); 
+    }
 }
 
 void mostrar_juego(juego_t juego)
@@ -319,12 +322,11 @@ static bool mover_linguini(juego_t      *juego,
         } else
         {
             juego->mozo.posicion = nueva_posicion;
-            juego->movimientos++;
             movimiento_exitoso = true;
             interactuar_con_objetos(juego);
         }
-    } while (juego->mozo.patines_puestos); 
-
+    } while (juego->mozo.patines_puestos);
+ 
     return movimiento_exitoso;
 }
 
