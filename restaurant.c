@@ -63,18 +63,23 @@ static void cambiar_mopa(juego_t *juego);
 
 // Fin funciones del TP1
 
-// TODO implementar y modularizar
-//static void interactuar_con_herramienta(juego_t *juego, objeto_t *herramienta);
-//static void interactuar_con_obstaculo(juego_t *juego, objeto_t *obstaculo);
-
-// TODO documentar
+/// @brief Interactua con todos los objetos del juego segun corresponda
+/// @pre `juego` no debe ser NULL
 static void interactuar_con_objetos(juego_t *juego);
 
+/// @brief Contabiliza la cantidad de cucarachas dentro del rango de 
+///        penalizacion de `mesa`
+/// @pre `juego` no debe ser NULL
+/// @pre `mesa` no debe ser NULL
 static int cantidad_cucarachas_cerca(const juego_t *juego, 
                                      const mesa_t  *mesa);
 
+/// @brief Disminuye la paciencia de las mesas ocupadas y las libera cuando esta
+///        se agota
+/// @pre `juego` no debe ser NULL
 static void disminuir_paciencia_comensales(juego_t *juego);
 
+// TODO implementar
 //static void cocinar_platillos(mesa_t *mesa);
 
 /// @brief Elimina los pedidos asociados a `indice_mesa` del vector `platillos` 
@@ -388,42 +393,20 @@ static void cambiar_mopa(juego_t *juego)
 static void interactuar_con_objetos(juego_t *juego)
 {
     assert(juego != NULL && "juego no puede ser NULL");
-    interactuar_con_mesas(juego);    
 
     mozo_t *mozo = &juego->mozo;
-    int indice_herramienta = posicion_superpone_herramienta(juego, mozo->posicion, false);
-    if (indice_herramienta != NO_SUPERPONE)
-    {
-        const objeto_t *herramienta = &juego->herramientas[indice_herramienta];
-        switch (herramienta->tipo)
-        {
-            case OBJ_PATIN:
-                mozo->cantidad_patines++;
-                eliminar_objeto(juego->herramientas, &juego->cantidad_herramientas, indice_herramienta);
-                break;
-            
-            case OBJ_MONEDA:
-                juego->dinero += 1000;
-                eliminar_objeto(juego->herramientas, &juego->cantidad_herramientas, indice_herramienta);
-                break;
-            
-        }
-    }
-
     int indice_obstaculo = posicion_superpone_obstaculo(juego, mozo->posicion);
     if (indice_obstaculo != NO_SUPERPONE)
-    {
-        const objeto_t *obstaculo = &juego->obstaculos[indice_obstaculo];
-        switch (obstaculo->tipo)
-        {
-            case OBJ_CHARCO:
-                if (mozo->tiene_mopa)
-                    eliminar_objeto(juego->obstaculos, &juego->cantidad_obstaculos, indice_obstaculo);
-                else
-                    /*TODO: perder platos*/{} 
-                break;
-        }
-    }
+        interactuar_con_obstaculo(juego, indice_obstaculo);
+
+    if (mozo->tiene_mopa)
+        return; 
+
+    interactuar_con_mesas(juego); 
+
+    int indice_herramienta = posicion_superpone_herramienta(juego, mozo->posicion, false);
+    if (indice_herramienta != NO_SUPERPONE)
+        interactuar_con_herramienta(juego, indice_herramienta);       
 
     bool interactuar_cocina = es_misma_coordenada(mozo->posicion, juego->cocina.posicion);
     if (interactuar_cocina)
@@ -433,6 +416,9 @@ static void interactuar_con_objetos(juego_t *juego)
 static int cantidad_cucarachas_cerca(const juego_t *juego, 
                                      const mesa_t  *mesa)
 {
+    assert(juego != NULL && "juego no puede ser NULL");
+    assert(mesa != NULL && "mesa no puede ser NULL");
+
     int cantidad_cucarachas = 0;
     for (int i = 0; i < juego->cantidad_obstaculos; i++)
     {

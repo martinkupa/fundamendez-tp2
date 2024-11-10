@@ -162,10 +162,8 @@ mesa_t generar_mesa_tentativa(juego_t      *juego,
                               bool         considerar_cocina);
 
 // Funciones TP 2
-// TODO: documentar
 
-
-
+/// @brief Calcula la distancia manhattan entre dos puntos
 uint64_t calcular_distancia_manhattan(coordenada_t cord1, 
                                       coordenada_t cord2);
 
@@ -177,11 +175,12 @@ uint64_t calcular_distancia_manhattan(coordenada_t cord1,
 ///       `indice_mesa`
 /// @pre juego no puede ser NULL
 /// @pre indice_mesa debe estar en rango para el vector juego_t::mesas, 
-///      [0, juego_t::cantidad_mesas)
+///      [0, juego->cantidad_mesas)
 pedido_t tomar_pedido(juego_t *juego, 
                       int     indice_mesa);
 
-/// @brief Spawnea entidades en el campo de juego en base a un contador
+/// @brief Spawnea entidades en el campo de juego en base a los movimientos
+///        realizados
 /// @pre juego no puede ser NULL
 void spawnear_entidades(juego_t *juego);
 
@@ -200,7 +199,8 @@ unsigned int calcular_comensales(const juego_t *juego);
 
 /// @brief Libera los recursos y termina el programa con un codigo de error y un
 ///        `mensaje` en stderr
-void terminar_fallo(cocina_t *cocina, const char *mensaje);
+void terminar_fallo(cocina_t   *cocina, 
+                    const char *mensaje);
 
 /// @brief Comprueba si la distancia manhattan entre `coordenada` y `mesa` es
 ///        menor o igual a `rango` (i.e, si esta en rango)
@@ -209,13 +209,33 @@ bool posicion_dentro_rango_mesa(coordenada_t coordenada,
                                 const mesa_t *mesa,
                                 unsigned int rango);
 
+/// @brief Interactua con las mesas al alcance del mozo. Hace la toma de pedidos
+///        y la entrega de platillos
+/// @pre juego no puede ser NULL
+void interactuar_con_mesas(juego_t *juego);
 
-
-// TODO documentar
-
+/// @brief Interactua con la cocina. Deja los pedidos a preparar y toma los
+///        pedidos preparados
+/// @pre mozo no puede ser NULL
+/// @pre cocina no puede ser NULL
 void interactuar_con_cocina(mozo_t   *mozo, 
                             cocina_t *cocina);
 
-void interactuar_con_mesas(juego_t *juego);
+/// @brief Interactua con la herramienta almacenada en la posicion 
+///        `indice_herramienta` del vector juego_t::herramientas
+/// @pre `juego` no debe ser NULL
+/// @pre indice_herramienta debe estar en rango para el vector 
+///      juego_t::herramientas, [0, juego->cantidad_herramientas)
+void interactuar_con_herramienta(juego_t *juego,
+                                 int     indice_herramienta);
+
+/// @brief Interactua con el obstaculo almacenado en la posicion 
+///        `indice_obstaculo` del vector juego_t::obstaculos
+/// @pre `juego` no debe ser NULL
+/// @pre indice_obstaculo debe estar en rango para el vector 
+///      juego_t::obstaculos, [0, juego->cantidad_obstaculos)
+void interactuar_con_obstaculo(juego_t *juego,
+                               int     indice_obstaculo);
+
 
 #endif

@@ -141,9 +141,9 @@ int posicion_superpone_obstaculo(const juego_t *juego,
         switch (obstaculo->tipo)
         {
             case OBJ_CHARCO:
+            case OBJ_CUCARACHA:
                 ocupado = es_misma_coordenada(posicion, obstaculo->posicion);  
                 break;
-            //TODO implementaria cucaracha pero no se el caracter 
         }
     }
     return ocupado ? i-1 : NO_SUPERPONE;
@@ -334,9 +334,8 @@ unsigned int calcular_comensales(const juego_t *juego)
 void interactuar_con_cocina(mozo_t   *mozo, 
                             cocina_t *cocina)
 {
-    if (mozo->tiene_mopa)
-        return;
-
+    assert(mozo != NULL && "mozo no puede ser NULL"); 
+    assert(cocina != NULL && "cocina no puede ser NULL"); 
     for (int i = mozo->cantidad_pedidos-1; i >= 0; i--)
     {
         vector_pedidos_t nuevo_vector = agregar_pedido_dinamico(cocina->platos_preparacion, &cocina->cantidad_preparacion, mozo->pedidos[i]);
@@ -357,7 +356,7 @@ void interactuar_con_cocina(mozo_t   *mozo,
         if (sin_memoria)
             terminar_fallo(cocina, "Sin memoria! Terminando...");
         cocina->platos_listos = nuevo_vector;
-        mozo->bandeja[mozo->cantidad_bandeja++] = pedido_listo;
+        agregar_pedido(mozo->bandeja, &mozo->cantidad_bandeja, pedido_listo);
 
         cocina_agotada = cocina->cantidad_listos <= 0;
         bandeja_llena = mozo->cantidad_bandeja >= MAX_BANDEJA;
@@ -376,7 +375,7 @@ void interactuar_con_mesas(juego_t *juego)
         if (hay_comensales && mozo_alcanza_mesa(mozo, mesa))
         {
             if (mesa->pedido_tomado)
-            {}
+            {} // TODO implementar la entrega del pedido cocinado
             else if (espacio_pedido_nuevo)
             {
                 pedido_t pedido = tomar_pedido(juego, i);
@@ -399,7 +398,52 @@ bool posicion_dentro_rango_mesa(coordenada_t coordenada,
     return en_rango;
 }
 
-void terminar_fallo(cocina_t *cocina, const char *mensaje)
+void interactuar_con_herramienta(juego_t *juego, 
+                                 int     indice_herramienta)
+{
+    assert(juego != NULL && "juego no puede ser NULL");
+    assert(indice_herramienta >= 0 && indice_herramienta < juego->cantidad_herramientas && "indice_obstaculo debe estar en rango");
+    const objeto_t *herramienta = &juego->herramientas[indice_herramienta];
+    mozo_t *mozo = &juego->mozo; 
+    switch (herramienta->tipo)
+    {
+        case OBJ_PATIN:
+            mozo->cantidad_patines++;
+            eliminar_objeto(juego->herramientas, &juego->cantidad_herramientas, indice_herramienta);
+            break;
+        
+        case OBJ_MONEDA:
+            juego->dinero += 1000;
+            eliminar_objeto(juego->herramientas, &juego->cantidad_herramientas, indice_herramienta);
+            break;
+        
+    }
+}
+
+void interactuar_con_obstaculo(juego_t *juego,
+                               int     indice_obstaculo)
+{
+    assert(juego != NULL && "juego no puede ser NULL");
+    assert(indice_obstaculo >= 0 && indice_obstaculo < juego->cantidad_obstaculos && "indice_obstaculo debe estar en rango");
+    const objeto_t *obstaculo = &juego->obstaculos[indice_obstaculo];
+    const mozo_t *mozo = &juego->mozo; 
+    switch (obstaculo->tipo)
+    {
+        case OBJ_CHARCO:
+            if (mozo->tiene_mopa)
+                eliminar_objeto(juego->obstaculos, &juego->cantidad_obstaculos, indice_obstaculo);
+            else
+                /*TODO: perder platos*/{} 
+            break;
+        case OBJ_CUCARACHA:
+            if (!mozo->tiene_mopa)
+                /* TODO matar cucas*/{}
+            break;
+    }
+}
+
+void terminar_fallo(cocina_t   *cocina, 
+                    const char *mensaje)
 {
     if (cocina)
     {

@@ -21,8 +21,4 @@ char pedir_caracter_valido(unsigned int largo,
 void construir_string_terreno_juego(const juego_t *juego, 
                                     size_t        largo_buffer,
                                     char          buffer[largo_buffer]);
-
-
-
-
 #endif
