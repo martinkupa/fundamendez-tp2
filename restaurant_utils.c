@@ -296,9 +296,14 @@ void spawnear_entidades(juego_t *juego)
     }
 
     bool spawnear_cucarachas = juego->movimientos % COOLDOWN_CUCARACHAS == 0;
-    if (spawnear_cucarachas)
+    bool hay_espacio = juego->cantidad_obstaculos + 1 < MAX_OBSTACULOS;
+    if (spawnear_cucarachas && hay_espacio)
     {
-        // TODO: spawn cucarachas
+        objeto_t cucaracha = {
+            .posicion = generar_posicion_libre(juego, NULL, false, true, true, true),
+            .tipo = OBJ_CUCARACHA
+        };
+        agregar_objeto(juego->obstaculos, &juego->cantidad_obstaculos, cucaracha);
     } 
 }
 
@@ -441,7 +446,7 @@ void interactuar_con_obstaculo(juego_t *juego,
             break;
         case OBJ_CUCARACHA:
             if (!mozo->tiene_mopa)
-                /* TODO matar cucas*/{}
+                eliminar_objeto(juego->obstaculos, &juego->cantidad_obstaculos, indice_obstaculo);
             break;
     }
 }
