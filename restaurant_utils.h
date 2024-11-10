@@ -123,7 +123,8 @@ bool es_posicion_ocupada(const juego_t *juego,
                          coordenada_t  posicion, 
                          bool          considerar_contorno_mesas,
                          bool          considerar_mozo,
-                         bool          considerar_cocina);
+                         bool          considerar_cocina,
+                         bool          considerar_mopa);
                     
 /// @brief genera una posicion aleatoria dentro del campo de juego que no este
 ///        ocupada por ningun elemento
@@ -137,7 +138,8 @@ coordenada_t generar_posicion_libre(const juego_t *juego,
                                     generador_t   *generador,
                                     bool          considerar_contorno_mesas,
                                     bool          considerar_mozo,
-                                    bool          considerar_cocina);
+                                    bool          considerar_cocina,
+                                    bool          considerar_mopa);
 
 /// @brief Revisa si `mesa` es valida, i.e si se superpone con algun
 ///        otro objeto o esta fuera del mapa 
@@ -146,7 +148,8 @@ coordenada_t generar_posicion_libre(const juego_t *juego,
 bool es_mesa_valida(juego_t      *juego, 
                     const mesa_t *mesa,
                     bool         considerar_mozo,
-                    bool         considerar_cocina);
+                    bool         considerar_cocina,
+                    bool         considerar_mopa);
 
 /// @brief Genera una mesa tentativa en una posicion aleatoria.
 /// @param tipo_mesa El tipo de mesa a generar
@@ -159,7 +162,8 @@ mesa_t generar_mesa_tentativa(juego_t      *juego,
                               generador_t  *generador, 
                               tipo_mesas_t tipo_mesa,
                               bool         considerar_mozo,
-                              bool         considerar_cocina);
+                              bool         considerar_cocina,
+                              bool         considerar_mopa);
 
 // Funciones TP 2
 

@@ -153,7 +153,8 @@ bool es_posicion_ocupada(const juego_t *juego,
                          coordenada_t  posicion,
                          bool          considerar_contorno_mesas,
                          bool          considerar_mozo,
-                         bool          considerar_cocina)
+                         bool          considerar_cocina,
+                         bool          considerar_mopa)
 {
     assert(juego != NULL && "juego no puede ser NULL");
     assert(es_posicion_valida(posicion) && "posicion debe ser una posicion valida");
@@ -163,7 +164,7 @@ bool es_posicion_ocupada(const juego_t *juego,
         ocupado = posicion_superpone_mesa(juego, posicion, considerar_contorno_mesas);
 
     if (!ocupado) 
-        ocupado = posicion_superpone_herramienta(juego, posicion, true) != NO_SUPERPONE;
+        ocupado = posicion_superpone_herramienta(juego, posicion, considerar_mopa) != NO_SUPERPONE;
 
     if (!ocupado)
         ocupado = posicion_superpone_obstaculo(juego, posicion) != NO_SUPERPONE;
@@ -175,7 +176,8 @@ coordenada_t generar_posicion_libre(const juego_t *juego,
                                     generador_t   *generador,
                                     bool          considerar_contorno_mesas,
                                     bool          considerar_mozo,
-                                    bool          considerar_cocina)
+                                    bool          considerar_cocina,
+                                    bool          considerar_mopa)
 {
     assert(juego != NULL && "juego no puede ser NULL");
     coordenada_t posicion_aleatoria;
@@ -183,7 +185,7 @@ coordenada_t generar_posicion_libre(const juego_t *juego,
     do
     {
         posicion_aleatoria = generador ? generador_posicion_unica(generador) : generador_posicion_aleatoria();
-        posicion_invalida = es_posicion_ocupada(juego, posicion_aleatoria, considerar_contorno_mesas, considerar_mozo, considerar_cocina);
+        posicion_invalida = es_posicion_ocupada(juego, posicion_aleatoria, considerar_contorno_mesas, considerar_mozo, considerar_cocina, considerar_mopa);
     } while (posicion_invalida);
     return posicion_aleatoria;
 }
@@ -191,7 +193,8 @@ coordenada_t generar_posicion_libre(const juego_t *juego,
 bool es_mesa_valida(juego_t      *juego, 
                     const mesa_t *mesa,
                     bool         considerar_mozo,
-                    bool         considerar_cocina)
+                    bool         considerar_cocina,
+                    bool         considerar_mopa)
 {
     assert(juego != NULL && "juego no puede ser NULL");
     assert(mesa != NULL && "mesa no puede ser NULL");
@@ -201,7 +204,7 @@ bool es_mesa_valida(juego_t      *juego,
     {
         int i = 0;
         while (sillas_validas && i < mesa->cantidad_lugares)
-            sillas_validas = !es_posicion_ocupada(juego, mesa->posicion[i++], true, considerar_mozo, considerar_cocina);
+            sillas_validas = !es_posicion_ocupada(juego, mesa->posicion[i++], true, considerar_mozo, considerar_cocina, considerar_mopa);
     }
     
     return en_terreno && sillas_validas;
@@ -222,10 +225,11 @@ mesa_t generar_mesa_tentativa(juego_t      *juego,
                               generador_t  *generador, 
                               tipo_mesas_t tipo_mesa,
                               bool         considerar_mozo,
-                              bool         considerar_cocina)
+                              bool         considerar_cocina,
+                              bool         considerar_mopa)
 {
     assert(juego != NULL && "juego no puede ser NULL");
-    coordenada_t posicion = generar_posicion_libre(juego, generador, true, considerar_mozo, considerar_cocina);
+    coordenada_t posicion = generar_posicion_libre(juego, generador, true, considerar_mozo, considerar_cocina, considerar_mopa);
     mesa_t mesa_tentativa;
 
     if (tipo_mesa == MESAS_1X1)

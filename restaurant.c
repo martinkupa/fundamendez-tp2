@@ -135,12 +135,12 @@ void inicializar_juego(juego_t *juego)
 
     // init cocina 
     juego->cocina = (cocina_t){
-        .posicion = generar_posicion_libre(juego, &generador, false, false, false)
+        .posicion = generar_posicion_libre(juego, &generador, false, false, false, false)
     };
 
     // init linguini
     juego->mozo = (mozo_t){
-        .posicion = generar_posicion_libre(juego, &generador, false, false, true)
+        .posicion = generar_posicion_libre(juego, &generador, false, false, true, false)
     };
 
     inicializar_herramientas(juego, &generador);     
@@ -262,8 +262,8 @@ static void inicializar_mesas(juego_t     *juego,
         mesa_t mesa_tentativa;
         do
         {
-            mesa_tentativa = generar_mesa_tentativa(juego, generador, MESAS_2X2, false, false);
-            mesa_valida = es_mesa_valida(juego, &mesa_tentativa, false, false); 
+            mesa_tentativa = generar_mesa_tentativa(juego, generador, MESAS_2X2, false, false, false);
+            mesa_valida = es_mesa_valida(juego, &mesa_tentativa, false, false, false); 
         } while (!mesa_valida);
         juego->mesas[juego->cantidad_mesas] = mesa_tentativa;
         juego->cantidad_mesas++;
@@ -272,7 +272,7 @@ static void inicializar_mesas(juego_t     *juego,
     for (int i = 0; i < CANTIDAD_MESAS_1X1; i++)
     {
         // al ser una mesa 1x1 sabemos que sera valida de antemano
-        juego->mesas[juego->cantidad_mesas] = generar_mesa_tentativa(juego, generador, MESAS_1X1, false, false);
+        juego->mesas[juego->cantidad_mesas] = generar_mesa_tentativa(juego, generador, MESAS_1X1, false, false, false);
         juego->cantidad_mesas++;
     }
 }
@@ -283,7 +283,7 @@ static void inicializar_mopa(juego_t     *juego,
     assert(juego != NULL && "El juego no debe ser NULL");
     juego->herramientas[juego->cantidad_herramientas] = (objeto_t){
         .tipo = OBJ_MOPA, 
-        .posicion = generar_posicion_libre(juego, generador, false, true, true)
+        .posicion = generar_posicion_libre(juego, generador, false, true, true, false)
     };
     juego->cantidad_herramientas++;
 }
@@ -297,7 +297,7 @@ static void inicializar_monedas(juego_t     *juego,
     {
         juego->herramientas[juego->cantidad_herramientas] = (objeto_t){
             .tipo = OBJ_MONEDA,
-            .posicion = generar_posicion_libre(juego, generador, false, true, true)
+            .posicion = generar_posicion_libre(juego, generador, false, true, true, true)
         };
         juego->cantidad_herramientas++;
     }
@@ -312,7 +312,7 @@ static void inicializar_patines(juego_t     *juego,
     {
         juego->herramientas[juego->cantidad_herramientas] = (objeto_t){
             .tipo = OBJ_PATIN,
-            .posicion = generar_posicion_libre(juego, generador, false, true, true)
+            .posicion = generar_posicion_libre(juego, generador, false, true, true, true)
         };
         juego->cantidad_herramientas++;
     }
@@ -335,12 +335,11 @@ static void inicializar_obstaculos(juego_t     *juego,
     assert(juego != NULL && "juego no debe ser NULL");
     juego->cantidad_obstaculos = 0;
 
-    //init charchos
     while (juego->cantidad_obstaculos < CANTIDAD_CHARCOS)
     {
         juego->obstaculos[juego->cantidad_obstaculos] = (objeto_t){
             .tipo = OBJ_CHARCO,
-            .posicion = generar_posicion_libre(juego, generador, false, true, true)
+            .posicion = generar_posicion_libre(juego, generador, false, true, true, true)
         };
         juego->cantidad_obstaculos++;
     }
@@ -349,7 +348,7 @@ static void inicializar_obstaculos(juego_t     *juego,
 static bool mover_linguini(juego_t      *juego, 
                            coordenada_t delta_posicion)
 {
-    assert(juego != NULL);
+    assert(juego != NULL && "juego no puede ser NULL");
     bool movimiento_exitoso = false;
     do
     {
@@ -378,8 +377,9 @@ static void cambiar_mopa(juego_t *juego)
     // estoy asumiendo que en el juego solo hay una unica mopa
     if (juego->mozo.tiene_mopa)
     {
-        bool posicion_invalida = es_misma_coordenada(juego->mozo.posicion, juego->cocina.posicion) || posicion_superpone_mesa(juego, juego->mozo.posicion, false) || posicion_superpone_herramienta(juego, juego->mozo.posicion, false) != NO_SUPERPONE || posicion_superpone_obstaculo(juego, juego->mozo.posicion) != NO_SUPERPONE;
-        if (posicion_invalida)
+        bool posicion_invalida = es_posicion_ocupada(juego, juego->mozo.posicion, false, false, true, false);
+        bool hay_espacio = juego->cantidad_herramientas + 1 < MAX_HERRAMIENTAS;
+        if (posicion_invalida || !hay_espacio)
             return;
         
         juego->mozo.tiene_mopa = false;
