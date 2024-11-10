@@ -47,11 +47,6 @@ const struct {
 
 // Fin constantes
 
-/// @brief Comprueba si el mozo esta en el rango como para interactuar con la 
-///        mesa
-/// @pre mozo no puede ser NULL
-/// @pre mesa no puede ser NULL
-static bool mozo_alcanza_mesa(const mozo_t *mozo, const mesa_t *mesa);
 
 // Funciones del TP1
 
@@ -442,7 +437,11 @@ void interactuar_con_obstaculo(juego_t *juego,
             if (mozo->tiene_mopa)
                 eliminar_objeto(juego->obstaculos, &juego->cantidad_obstaculos, indice_obstaculo);
             else
-                /*TODO: perder platos*/{} 
+                for (int i = mozo->cantidad_bandeja-1; i >= 0; i--)
+                {
+                    const pedido_t *platillo = &mozo->bandeja[i];
+                    eliminar_comensales(juego, platillo->id_mesa);               
+                }    
             break;
         case OBJ_CUCARACHA:
             if (!mozo->tiene_mopa)
@@ -466,7 +465,70 @@ void terminar_fallo(cocina_t   *cocina,
     exit(EXIT_FAILURE);
 }
 
-static bool mozo_alcanza_mesa(const mozo_t *mozo, const mesa_t *mesa)
+bool borrar_platillos_dinamicos_por_mesa(vector_pedidos_t *platillos,
+                                         int              *cantidad_platillos, 
+                                         int              indice_mesa)
+{
+    assert(platillos != NULL && "platillos no puede ser NULL");
+    assert(cantidad_platillos != NULL && "cantidad_platillos no debe ser NULL");
+    for (int i = 0; i < *cantidad_platillos; i++)
+    {
+        pedido_t *platillo_preparacion = &(*platillos)[i];
+        if (platillo_preparacion->id_mesa == indice_mesa)
+        {
+            vector_pedidos_t nuevo_vector = eliminar_pedido_dinamico(*platillos, cantidad_platillos, i); 
+            bool sin_memoria = nuevo_vector == NULL && *cantidad_platillos != 0;
+            if (sin_memoria)
+                return false;
+            *platillos = nuevo_vector; 
+        }
+    }
+    return true;
+}
+
+void borrar_pedidos_mozo_por_mesa(mozo_t *mozo, 
+                                  int    indice_mesa)
+{
+    assert(mozo != NULL && "mozo no puede ser NULL");
+    for (int i = 0; i < mozo->cantidad_pedidos; i++)
+    {
+        pedido_t *pedido = &mozo->pedidos[i];
+        if (pedido->id_mesa == indice_mesa)
+            eliminar_pedido(mozo->pedidos, &mozo->cantidad_pedidos, i);
+    }
+
+    for (int i = 0; i < mozo->cantidad_bandeja; i++)
+    {
+        pedido_t *platillo = &mozo->bandeja[i];
+        if (platillo->id_mesa == indice_mesa)
+            eliminar_pedido(mozo->bandeja, &mozo->cantidad_bandeja, i);
+    }
+}
+
+
+void eliminar_comensales(juego_t *juego,
+                         int     indice_mesa)
+{
+    assert(juego != NULL && "juego no puede ser NULL");
+    assert(indice_mesa >= 0 && indice_mesa < juego->cantidad_mesas && "indice_mesa no esta en rango");
+    mesa_t *mesa = &juego->mesas[indice_mesa];
+    mesa->cantidad_comensales = 0;
+    mesa->paciencia = 0;
+    mesa->pedido_tomado = false;
+
+    borrar_pedidos_mozo_por_mesa(&juego->mozo, indice_mesa);     
+
+    cocina_t *cocina = &juego->cocina;
+    bool exito = borrar_platillos_dinamicos_por_mesa(&cocina->platos_preparacion, &cocina->cantidad_preparacion, indice_mesa);
+    if (!exito)
+        terminar_fallo(cocina, "Sin memoria! Terminando...");
+ 
+    exito = borrar_platillos_dinamicos_por_mesa(&cocina->platos_listos, &cocina->cantidad_listos, indice_mesa);
+    if (!exito) 
+        terminar_fallo(cocina, "Sin memoria! Terminando..."); 
+}
+
+bool mozo_alcanza_mesa(const mozo_t *mozo, const mesa_t *mesa)
 {
     assert(mozo != NULL && "mozo no puede ser NULL");
     assert(mesa != NULL && "mesa no puede ser NULL");

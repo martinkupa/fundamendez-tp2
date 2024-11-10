@@ -3,6 +3,7 @@
 
 #include "generador.h"
 #include "restaurant.h"
+#include "vector_pedidos.h"
 #include "vector_operaciones.h"
 
 #include <inttypes.h>
@@ -240,6 +241,38 @@ void interactuar_con_herramienta(juego_t *juego,
 ///      juego_t::obstaculos, [0, juego->cantidad_obstaculos)
 void interactuar_con_obstaculo(juego_t *juego,
                                int     indice_obstaculo);
+
+/// @brief Libera una mesa eliminando los comensales y los pedidos asociados a 
+///        estos
+/// @param indice_mesa El indice de la mesa a eliminar en el vector 
+///        juego_t::mesas
+/// @pre juego no debe ser NULL
+/// @pre indice_mesa debe estar en el rango de [0, juego->cantidad_mesas)
+void eliminar_comensales(juego_t *juego,
+                         int     indice_mesa);
+
+/// @brief Elimina los pedidos asociados a `indice_mesa` del vector `platillos` 
+/// @return true si la operacion fue exitosa, o false si hubo errores al
+///         reservar memoria
+/// @pre platillos no debe ser NULL
+/// @pre cantidad_platillos no debe ser NULL
+bool borrar_platillos_dinamicos_por_mesa(vector_pedidos_t *platillos,
+                                         int              *cantidad_platillos, 
+                                         int              indice_mesa);
+
+
+/// @brief Borra tanto los pedidos como los platillos asociados a `indice_mesa`
+///        que tiene el mozo encima
+/// @pre mozo no puede ser NULL
+void borrar_pedidos_mozo_por_mesa(mozo_t *mozo, 
+                                  int    indice_mesa);
+
+/// @brief Comprueba si el mozo esta en el rango como para interactuar con la 
+///        mesa
+/// @pre mozo no puede ser NULL
+/// @pre mesa no puede ser NULL
+bool mozo_alcanza_mesa(const mozo_t *mozo, 
+                       const mesa_t *mesa);
 
 
 #endif
