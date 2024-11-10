@@ -41,8 +41,7 @@ typedef uint8_t tipo_mesas_t;
 
 extern const tipo_mesas_t MESAS_1X1;
 extern const tipo_mesas_t MESAS_2X2;
-extern const uint16_t PAGO_MESA_1X1;
-extern const uint16_t PAGO_MESA_2X2;
+extern const uint16_t PAGO_COMENSAL;
 extern const int8_t CANTIDAD_MESAS_1X1;
 extern const int8_t CANTIDAD_MESAS_2X2;
 extern const uint8_t CANTIDAD_CHARCOS;
@@ -214,10 +213,12 @@ bool posicion_dentro_rango_mesa(coordenada_t coordenada,
                                 const mesa_t *mesa,
                                 unsigned int rango);
 
-/// @brief Interactua con las mesas al alcance del mozo. Hace la toma de pedidos
-///        y la entrega de platillos
+/// @brief Interactua con la mesa y entrega los platillos
 /// @pre juego no puede ser NULL
-void interactuar_con_mesas(juego_t *juego);
+/// @pre indice_mesa debe estar en rango para el vector juego_t::mesas, 
+///      [0, juego->cantidad_mesas)
+void interactuar_con_mesa(juego_t *juego,
+                          int     indice_mesa);
 
 /// @brief Interactua con la cocina. Deja los pedidos a preparar y toma los
 ///        pedidos preparados

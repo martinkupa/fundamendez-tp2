@@ -386,8 +386,14 @@ static void interactuar_con_objetos(juego_t *juego)
     if (mozo->tiene_mopa)
         return; 
 
-    interactuar_con_mesas(juego); 
-
+    for (int i = 0; i < juego->cantidad_mesas; i++)
+    {
+        mesa_t *mesa = &juego->mesas[i];
+        bool hay_comensales = mesa->cantidad_comensales > 0;
+        if (hay_comensales && mozo_alcanza_mesa(mozo, mesa))
+            interactuar_con_mesa(juego, i); 
+    }
+    
     int indice_herramienta = posicion_superpone_herramienta(juego, mozo->posicion, false);
     if (indice_herramienta != NO_SUPERPONE)
         interactuar_con_herramienta(juego, indice_herramienta);       

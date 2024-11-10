@@ -15,8 +15,7 @@ const int32_t OBJETIVO_DINERO = 150000;
 const uint8_t LIMITE_MOVIMIENTOS = 200;
 const tipo_mesas_t MESAS_1X1 = 1;
 const tipo_mesas_t MESAS_2X2 = 2;
-const uint16_t PAGO_MESA_1X1 = 5000;
-const uint16_t PAGO_MESA_2X2 = PAGO_MESA_1X1 * 4;
+const uint16_t PAGO_COMENSAL = 5000;
 const int8_t CANTIDAD_MESAS_1X1 = 6;
 const int8_t CANTIDAD_MESAS_2X2 = 4;
 const uint8_t CANTIDAD_CHARCOS = 5;
@@ -367,20 +366,24 @@ void interactuar_con_cocina(mozo_t   *mozo,
     }   
 }
 
-void interactuar_con_mesas(juego_t *juego)
+void interactuar_con_mesa(juego_t *juego,
+                          int     indice_mesa)
 {
     assert(juego != NULL && "el juego no puede ser NULL");
-    mozo_t *mozo = &juego->mozo;
-    for (int i = 0; i < juego->cantidad_mesas; i++)
+    mozo_t *mozo = &juego->mozo; 
+    mesa_t *mesa = &juego->mesas[indice_mesa];
+    if (mesa->pedido_tomado)
     {
-        mesa_t *mesa = &juego->mesas[i];
-        bool hay_comensales = mesa->cantidad_comensales > 0;
-        bool espacio_pedido_nuevo = mozo->cantidad_pedidos < MAX_PEDIDOS;
-        if (hay_comensales && mozo_alcanza_mesa(mozo, mesa))
+        bool tiene_platillo = false;
+        for (int i = 0; !tiene_platillo && i < mozo->cantidad_bandeja; i++)
+            tiene_platillo = mozo->bandeja[i].id_mesa == indice_mesa;
+        if (tiene_platillo)
         {
             if (mesa->pedido_tomado)
-            {} // TODO implementar la entrega del pedido cocinado
-            else if (espacio_pedido_nuevo)
+            {
+              juego->dinero += mesa->cantidad_comensales * PAGO_COMENSAL;
+              eliminar_comensales(juego, indice_mesa);
+            } else if (espacio_pedido_nuevo)
             {
                 pedido_t pedido = tomar_pedido(juego, i);
                 mozo->pedidos[mozo->cantidad_pedidos++] = pedido;
