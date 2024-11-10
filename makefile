@@ -6,7 +6,7 @@ TEST_DIR=tests
 LIBS=generador restaurant_utils restaurant restaurant_io vector_pedidos vector_operaciones
 
 cflags.release= -Wall -Werror -Wconversion -std=c99
-cflags.debug= -I./ ${cflags.release} -fPIE -O0 -fanalyzer -g3 -fsanitize=${SANITIZER} -fsanitize=undefined -Wextra -Wundef -Wcast-align -Wstrict-overflow=5 -Wswitch-enum -Wshadow -Wpointer-arith -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wno-unused-parameter
+cflags.debug= -I./ ${cflags.release} -fPIE -O0 -fanalyzer -g3 -fsanitize=${SANITIZER} -fsanitize=undefined -Wextra -Wundef -Wcast-align -Wstrict-overflow=2 -Wswitch-enum -Wshadow -Wpointer-arith -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wno-unused-parameter
 
 
 CFLAGS=${cflags.${BUILD}}

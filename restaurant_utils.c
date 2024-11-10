@@ -454,7 +454,7 @@ void terminar_fallo(cocina_t   *cocina,
     }
     
     fprintf(stderr, "[FATAL]: %s\n", mensaje);
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 static bool mozo_alcanza_mesa(const mozo_t *mozo, const mesa_t *mesa)

@@ -79,8 +79,10 @@ static int cantidad_cucarachas_cerca(const juego_t *juego,
 /// @pre `juego` no debe ser NULL
 static void disminuir_paciencia_comensales(juego_t *juego);
 
-// TODO implementar
-//static void cocinar_platillos(mesa_t *mesa);
+/// @brief Cocina los pedidos en preparacion y una vez listos los transfiere a
+///        cocina_t::platos_listos
+/// @pre cocina no debe ser NULL
+static void cocinar_platillos(cocina_t *cocina);
 
 /// @brief Elimina los pedidos asociados a `indice_mesa` del vector `platillos` 
 /// @return true si la operacion fue exitosa, o false si hubo errores al
@@ -90,6 +92,13 @@ static void disminuir_paciencia_comensales(juego_t *juego);
 static bool borrar_platillos_dinamicos_por_mesa(vector_pedidos_t *platillos,
                                                 int              *cantidad_platillos, 
                                                 int              indice_mesa);
+
+
+/// @brief Borra tanto los pedidos como los platillos asociados a `indice_mesa`
+///        que tiene el mozo encima
+/// @pre mozo no puede ser NULL
+static void borrar_pedidos_mozo_por_mesa(mozo_t *mozo, 
+                                         int    indice_mesa);
 
 /// @brief Libera una mesa eliminando los comensales y los pedidos asociados a 
 ///        estos
@@ -184,7 +193,7 @@ void realizar_jugada(juego_t *juego, char accion)
     {
         juego->movimientos++;
         disminuir_paciencia_comensales(juego);
-        //cocinar_platillos(juego->cocina);
+        cocinar_platillos(&juego->cocina);
         spawnear_entidades(juego); 
     }
 }
@@ -446,7 +455,6 @@ static void disminuir_paciencia_comensales(juego_t *juego)
     
 }
 
-
 static bool borrar_platillos_dinamicos_por_mesa(vector_pedidos_t *platillos,
                                                 int              *cantidad_platillos, 
                                                 int              indice_mesa)
@@ -468,6 +476,25 @@ static bool borrar_platillos_dinamicos_por_mesa(vector_pedidos_t *platillos,
     return true;
 }
 
+static void borrar_pedidos_mozo_por_mesa(mozo_t *mozo, 
+                                         int    indice_mesa)
+{
+    assert(mozo != NULL && "mozo no puede ser NULL");
+    for (int i = 0; i < mozo->cantidad_pedidos; i++)
+    {
+        pedido_t *pedido = &mozo->pedidos[i];
+        if (pedido->id_mesa == indice_mesa)
+            eliminar_pedido(mozo->pedidos, &mozo->cantidad_pedidos, i);
+    }
+
+    for (int i = 0; i < mozo->cantidad_bandeja; i++)
+    {
+        pedido_t *platillo = &mozo->bandeja[i];
+        if (platillo->id_mesa == indice_mesa)
+            eliminar_pedido(mozo->bandeja, &mozo->cantidad_bandeja, i);
+    }
+}
+
 static void eliminar_comensales(juego_t *juego,
                                 int     indice_mesa)
 {
@@ -478,13 +505,7 @@ static void eliminar_comensales(juego_t *juego,
     mesa->paciencia = 0;
     mesa->pedido_tomado = false;
 
-    mozo_t *mozo = &juego->mozo;
-    for (int i = 0; i < mozo->cantidad_pedidos; i++)
-    {
-        pedido_t *pedido = &mozo->pedidos[i];
-        if (pedido->id_mesa == indice_mesa)
-            eliminar_pedido(mozo->pedidos, &mozo->cantidad_pedidos, i);
-    }
+    borrar_pedidos_mozo_por_mesa(&juego->mozo, indice_mesa);     
 
     cocina_t *cocina = &juego->cocina;
     bool exito = borrar_platillos_dinamicos_por_mesa(&cocina->platos_preparacion, &cocina->cantidad_preparacion, indice_mesa);
@@ -493,8 +514,38 @@ static void eliminar_comensales(juego_t *juego,
  
     exito = borrar_platillos_dinamicos_por_mesa(&cocina->platos_listos, &cocina->cantidad_listos, indice_mesa);
     if (!exito) 
-        terminar_fallo(cocina, "Sin memoria! Terminando...");
-    
+        terminar_fallo(cocina, "Sin memoria! Terminando..."); 
 }
+
+static void cocinar_platillos(cocina_t *cocina)
+{
+    assert(cocina != NULL && "cocina no debe ser NULL");
+    for (int i = 0; i < cocina->cantidad_preparacion; i++)
+    {
+        pedido_t *platillo = &cocina->platos_preparacion[i];
+        platillo->tiempo_preparacion--;
+        bool esta_plato_listo = platillo->tiempo_preparacion <= 0;
+        if (esta_plato_listo)
+        {   
+            pedido_t plato_listo = *platillo;
+            vector_pedidos_t nuevo_vector_preparacion = eliminar_pedido_dinamico(cocina->platos_preparacion, &cocina->cantidad_preparacion, i);
+
+            bool sin_memoria = nuevo_vector_preparacion == NULL && cocina->cantidad_preparacion != 0;
+            if (sin_memoria)
+                terminar_fallo(cocina, "Sin memoria! Terminando...");
+
+            cocina->platos_preparacion = nuevo_vector_preparacion;
+
+            vector_pedidos_t nuevo_vector_listo = agregar_pedido_dinamico(cocina->platos_listos, &cocina->cantidad_listos, plato_listo);
+
+            sin_memoria = nuevo_vector_listo == NULL;
+            if (sin_memoria) 
+                terminar_fallo(cocina, "Sin memoria! Terminando...");
+
+            cocina->platos_listos = nuevo_vector_listo;            
+        }
+    } 
+}
+
 // Fin funciones estaticas
 
