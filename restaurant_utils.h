@@ -23,7 +23,8 @@
 #define ACCION_IZQUIERDA 'A'
 #define ACCION_MOPA 'O'
 #define ACCION_PATIN 'P'
-#define CANTIDAD_ACCIONES 6
+#define ACCION_PEDIDO 'T'
+#define CANTIDAD_ACCIONES 7
 #define PLATO_NAPOLITANA 'M'
 #define PLATO_HAMBURGUESA 'H'
 #define PLATO_PARRILLA 'P'
@@ -180,8 +181,8 @@ uint64_t calcular_distancia_manhattan(coordenada_t cord1,
 /// @pre juego no puede ser NULL
 /// @pre indice_mesa debe estar en rango para el vector juego_t::mesas, 
 ///      [0, juego->cantidad_mesas)
-pedido_t tomar_pedido(juego_t *juego, 
-                      int     indice_mesa);
+pedido_t generar_pedido(const juego_t *juego, 
+                        int           indice_mesa);
 
 /// @brief Spawnea entidades en el campo de juego en base a los movimientos
 ///        realizados

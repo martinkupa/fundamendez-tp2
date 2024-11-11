@@ -249,13 +249,13 @@ uint64_t calcular_distancia_manhattan(coordenada_t cord1,
     return (uint64_t)abs(cord1.fil - cord2.fil) + (uint64_t)abs(cord1.col - cord2.col);
 }
 
-pedido_t tomar_pedido(juego_t *juego, 
-                      int     indice_mesa)
+pedido_t generar_pedido(const juego_t *juego, 
+                        int           indice_mesa)
 {
     assert(juego != NULL && "el juego no puede ser NULL");
     assert(indice_mesa >= 0 && indice_mesa < juego->cantidad_mesas && "indice_mesa debe estar en rango");
     pedido_t pedido = {};
-    mesa_t *mesa = &juego->mesas[indice_mesa];
+    const mesa_t *mesa = &juego->mesas[indice_mesa];
     for (int i = 0; i < mesa->cantidad_comensales; i++)
     {
         int plato = generador_numero_aleatorio(0,4);
@@ -376,18 +376,10 @@ void interactuar_con_mesa(juego_t *juego,
             tiene_platillo = mozo->bandeja[i].id_mesa == indice_mesa;
         if (tiene_platillo)
         {
-            if (mesa->pedido_tomado)
-            {
-              juego->dinero += mesa->cantidad_comensales * PAGO_COMENSAL;
-              eliminar_comensales(juego, indice_mesa);
-            } else if (espacio_pedido_nuevo)
-            {
-                pedido_t pedido = tomar_pedido(juego, i);
-                mozo->pedidos[mozo->cantidad_pedidos++] = pedido;
-                mesa->pedido_tomado = true;
-            }
-        }
-    }
+            juego->dinero += mesa->cantidad_comensales * PAGO_COMENSAL;
+            eliminar_comensales(juego, indice_mesa);
+        }    
+    } 
 }
 
 bool posicion_dentro_rango_mesa(coordenada_t coordenada, 

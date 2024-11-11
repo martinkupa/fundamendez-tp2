@@ -16,10 +16,10 @@ int main(void)
     {
         system("clear");
         mostrar_juego(juego);
-        printf("Ingrese una accion (%c,%c,%c,%c,%c,%c): ", ACCION_ARRIBA, ACCION_IZQUIERDA, ACCION_ABAJO, ACCION_DERECHA, ACCION_MOPA, ACCION_PATIN);
+        printf("Ingrese una accion (%c,%c,%c,%c,%c,%c,%c): ", ACCION_ARRIBA, ACCION_IZQUIERDA, ACCION_ABAJO, ACCION_DERECHA, ACCION_MOPA, ACCION_PATIN, ACCION_PEDIDO);
         // Es necesario flushear el stream manualmente cuando printf no recibe un newline
         fflush(stdout);
-        char accion = pedir_caracter_valido(CANTIDAD_ACCIONES, (char[]){ACCION_ARRIBA, ACCION_IZQUIERDA, ACCION_ABAJO, ACCION_DERECHA, ACCION_MOPA, ACCION_PATIN});
+        char accion = pedir_caracter_valido(CANTIDAD_ACCIONES, (char[]){ACCION_ARRIBA, ACCION_IZQUIERDA, ACCION_ABAJO, ACCION_DERECHA, ACCION_MOPA, ACCION_PATIN, ACCION_PEDIDO});
         realizar_jugada(&juego, accion);
         juego_terminado = estado_juego(juego) != CONTINUA; 
     } while (!juego_terminado);

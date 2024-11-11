@@ -83,6 +83,10 @@ static void disminuir_paciencia_comensales(juego_t *juego);
 /// @pre cocina no debe ser NULL
 static void cocinar_platillos(cocina_t *cocina);
 
+/// @brief Recorre las mesas buscando aquellas en rango para tomarles el pedido
+/// @pre `juego` no debe ser NULL
+/// @return La cantidad de pedidos tomados
+static int tomar_pedidos(juego_t *juego);
 // Fin declaraciones estaticas
 
 // Definiciones de funciones
@@ -157,9 +161,15 @@ void realizar_jugada(juego_t *juego, char accion)
                 juego->mozo.patines_puestos = true;
             }
             break; 
+
+        case ACCION_PEDIDO:
+            if (!juego->mozo.tiene_mopa) 
+                jugada_realizada = tomar_pedidos(juego); 
+            break; 
+
         default:
-            assert(false && "Recibi una accion no valida");
-            fprintf(stderr, "[WARN]: realizar_jugada() recibio una jugada invalida\n");
+            assert(false && "realizar_jugada() recibio una accion no valida");
+            fprintf(stderr, "[ERROR]: realizar_jugada() recibio una jugada invalida\n");
             return;
     }
 
@@ -468,11 +478,12 @@ static void cocinar_platillos(cocina_t *cocina)
         pedido_t *platillo = &cocina->platos_preparacion[i];
         platillo->tiempo_preparacion--;
         bool esta_plato_listo = platillo->tiempo_preparacion <= 0;
+        // TODO maybe factor out into mover_platillo_listo() ?
         if (esta_plato_listo)
         {   
             pedido_t plato_listo = *platillo;
             vector_pedidos_t nuevo_vector_preparacion = eliminar_pedido_dinamico(cocina->platos_preparacion, &cocina->cantidad_preparacion, i);
-
+            
             bool sin_memoria = nuevo_vector_preparacion == NULL && cocina->cantidad_preparacion != 0;
             if (sin_memoria)
                 terminar_fallo(cocina, "Sin memoria! Terminando...");
@@ -488,6 +499,24 @@ static void cocinar_platillos(cocina_t *cocina)
             cocina->platos_listos = nuevo_vector_listo;            
         }
     } 
+}
+
+static int tomar_pedidos(juego_t *juego)
+{
+    assert(juego != NULL && "juego no puede ser NULL");
+    int pedidos_tomados = 0;
+    for (int i = 0; i < juego->cantidad_mesas; i++)
+    {
+        mesa_t *mesa = &juego->mesas[i];
+        bool hay_comensales = mesa->cantidad_comensales > 0;
+        if (hay_comensales && !mesa->pedido_tomado && mozo_alcanza_mesa(&juego->mozo, mesa))
+        {
+            agregar_pedido(juego->mozo.pedidos, &juego->mozo.cantidad_pedidos, generar_pedido(juego, i));
+            mesa->pedido_tomado = true;
+            pedidos_tomados++;
+        }
+    }
+    return pedidos_tomados;
 }
 
 // Fin funciones estaticas
