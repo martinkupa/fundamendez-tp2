@@ -118,14 +118,7 @@ static void dibujar_herramientas(const juego_t *juego,
 {
     assert(juego != NULL && "El juego no debe ser NULL");
     assert(buffer != NULL && "El buffer no debe ser NULL");
-    if (!juego->mozo.tiene_mopa)
-    {
-        assert(juego->herramientas[0].tipo == OBJ_MOPA);
-        objeto_t mopa = juego->herramientas[0];
-        buffer[indice((coordenada_t){mopa.posicion.fil, mopa.posicion.col})] = mopa.tipo;
-    }
-
-    for (int i = 1; i < juego->cantidad_herramientas; i++)
+    for (int i = 0; i < juego->cantidad_herramientas; i++)
     {
         const objeto_t *herramienta = &juego->herramientas[i];
         buffer[indice((coordenada_t){herramienta->posicion.fil, herramienta->posicion.col})] = herramienta->tipo;

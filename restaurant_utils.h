@@ -52,7 +52,6 @@ extern const int CONTINUA;
 extern const int PERDIO;
 extern const uint8_t CANTIDAD_PATINES;
 extern const uint8_t CANTIDAD_MONEDAS;
-extern const uint8_t INDICE_MOPA;
 extern const uint8_t PACIENCIA_MINIMA;
 extern const uint8_t PACIENCIA_MAXIMA;
 extern const int NO_SUPERPONE;
@@ -63,6 +62,7 @@ extern const uint8_t COMENSALES_MAXIMO;
 extern const uint8_t PENALIZACION_CUCARACHA;
 extern const uint8_t RANGO_CUCARACHAS;
 extern const unsigned int ALCANCE_MOZO;
+extern const int NO_ENCONTRADO;
 
 bool es_misma_coordenada(coordenada_t cord1, 
                          coordenada_t cord2);

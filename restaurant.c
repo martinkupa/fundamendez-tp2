@@ -1,7 +1,6 @@
 #include "restaurant.h"
 #include "restaurant_utils.h"
 #include "restaurant_io.h"
-#include "vector_pedidos.h"
 #include "generador.h"
 
 #include <stdlib.h>
@@ -346,10 +345,25 @@ static bool mover_linguini(juego_t      *juego,
     return movimiento_exitoso;
 }
 
+static int buscar_mopa(const juego_t *juego)
+{
+    assert(juego != NULL && "juego no debe ser NULL");
+    int indice_mopa = juego->cantidad_herramientas;
+    bool encontrada = false;
+    for (int i = 0; !encontrada && i < juego->cantidad_herramientas; i++)
+    {
+        if (juego->herramientas[i].tipo == OBJ_MOPA)
+        {
+            indice_mopa = i;
+            encontrada = true;
+        }
+    }
+    return encontrada ? indice_mopa : NO_ENCONTRADO;
+}
+
 static void cambiar_mopa(juego_t *juego)
 {
-    // TODO: implementar eliminado "fisico"
-    // estoy asumiendo que en el juego solo hay una unica mopa
+    assert(juego != NULL && "juego no debe ser NULL");
     if (juego->mozo.tiene_mopa)
     {
         bool posicion_invalida = es_posicion_ocupada(juego, juego->mozo.posicion, false, false, true, false);
@@ -358,15 +372,24 @@ static void cambiar_mopa(juego_t *juego)
             return;
         
         juego->mozo.tiene_mopa = false;
-        assert(juego->herramientas[INDICE_MOPA].tipo == OBJ_MOPA && "La mopa debe estar en la posicion 0");
-        juego->herramientas[INDICE_MOPA].posicion = juego->mozo.posicion;
+        objeto_t mopa = {
+            .posicion = juego->mozo.posicion,
+            .tipo = OBJ_MOPA
+        };
+        agregar_objeto(juego->herramientas, &juego->cantidad_herramientas, mopa);
     } else 
     {
-        assert(juego->herramientas[INDICE_MOPA].tipo == OBJ_MOPA && "La mopa debe estar en la posicion 0");
-        coordenada_t posicion_mopa = juego->herramientas[INDICE_MOPA].posicion;
+        int indice_mopa = buscar_mopa(juego);
+        assert(indice_mopa != NO_ENCONTRADO && "Ni el mapa ni el mozo tienen la mopa");
+        if (indice_mopa == NO_ENCONTRADO)
+        {
+            fprintf(stderr, "[ERROR]: El mozo intento agarrar la mopa, pero ni el mozo ni el mapa la tienen!");
+            return; // Intentamos continuar con el juego sin la mopa
+        }
+        coordenada_t posicion_mopa = juego->herramientas[indice_mopa].posicion;
         if (es_misma_coordenada(juego->mozo.posicion, posicion_mopa))
         {
-            juego->herramientas[INDICE_MOPA].posicion = (coordenada_t){.col=0, .fil=0};
+            eliminar_objeto(juego->herramientas, &juego->cantidad_herramientas, indice_mopa);
             juego->mozo.tiene_mopa = true;
         } 
     } 
@@ -422,6 +445,7 @@ static int cantidad_cucarachas_cerca(const juego_t *juego,
 
 static void disminuir_paciencia_comensales(juego_t *juego)
 {
+    assert(juego != NULL && "juego no puede ser NULL");
     for (int i = 0; i < juego->cantidad_mesas; i++)
     {
         mesa_t *mesa = &juego->mesas[i];

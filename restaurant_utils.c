@@ -21,7 +21,6 @@ const int8_t CANTIDAD_MESAS_2X2 = 4;
 const uint8_t CANTIDAD_CHARCOS = 5;
 const uint8_t CANTIDAD_PATINES = 5;
 const uint8_t CANTIDAD_MONEDAS = 8;
-const uint8_t INDICE_MOPA = 0;
 const uint8_t PACIENCIA_MINIMA = 100;
 const uint8_t PACIENCIA_MAXIMA = 200;
 const int NO_SUPERPONE = -1;
@@ -32,7 +31,7 @@ const uint8_t COMENSALES_MAXIMO = 4;
 const uint8_t PENALIZACION_CUCARACHA = 2;
 const uint8_t RANGO_CUCARACHAS = 2;
 const unsigned int ALCANCE_MOZO = 1;
-
+const int NO_ENCONTRADO = -1;
 
 const struct {
     char plato;
@@ -109,13 +108,11 @@ int posicion_superpone_herramienta(const juego_t *juego,
         const objeto_t *herramienta = &juego->herramientas[i++];
         switch (herramienta->tipo)
         {
-            case OBJ_MONEDA:
-            case OBJ_PATIN:
-                ocupado = es_misma_coordenada(posicion, herramienta->posicion);     
-                break;
             case OBJ_MOPA:
                 if (considerar_mopa)
-                    ocupado = es_misma_coordenada(posicion, herramienta->posicion);
+            case OBJ_MONEDA:
+            case OBJ_PATIN:
+                    ocupado = es_misma_coordenada(posicion, herramienta->posicion);     
                 break;
         }
     }
