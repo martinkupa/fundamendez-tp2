@@ -59,6 +59,8 @@ void construir_string_terreno_juego(const juego_t *juego,
                                     size_t        largo_buffer,
                                     char          buffer[largo_buffer])
 {
+    assert(juego != NULL && "juego no debe ser NULL");
+    assert(buffer != NULL && "buffer no puede ser NULL");
     memset(buffer, '.', largo_buffer-1);
     buffer[largo_buffer-1] = '\0';
 

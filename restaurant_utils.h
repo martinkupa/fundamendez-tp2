@@ -35,8 +35,6 @@ typedef struct rectangulo {
     coordenada_t abajo_der;
 } rectangulo_t;
 
-// Typedef para que la API sea mas expresiva
-
 /// @brief Los tipos de mesas que el juego permite
 typedef uint8_t tipo_mesas_t;
 
@@ -166,8 +164,6 @@ mesa_t generar_mesa_tentativa(juego_t      *juego,
                               bool         considerar_cocina,
                               bool         considerar_mopa);
 
-// Funciones TP 2
-
 /// @brief Calcula la distancia manhattan entre dos puntos
 uint64_t calcular_distancia_manhattan(coordenada_t cord1, 
                                       coordenada_t cord2);
@@ -261,7 +257,6 @@ void eliminar_comensales(juego_t *juego,
 bool borrar_platillos_dinamicos_por_mesa(vector_pedidos_t *platillos,
                                          int              *cantidad_platillos, 
                                          int              indice_mesa);
-
 
 /// @brief Borra tanto los pedidos como los platillos asociados a `indice_mesa`
 ///        que tiene el mozo encima

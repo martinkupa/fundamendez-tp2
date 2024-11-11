@@ -5,9 +5,6 @@
 #include <assert.h>
 #include <stdio.h>
 
-
-// Definicion de constantes.
-
 const int GANO = 1;
 const int CONTINUA = 0;
 const int PERDIO = -1;
@@ -42,11 +39,6 @@ const struct {
     [2] = {.plato=PLATO_PARRILLA, .tiempo_preparacion=20},
     [3] = {.plato=PLATO_RATATOUILLE, .tiempo_preparacion=25}
 };
-
-// Fin constantes
-
-
-// Funciones del TP1
 
 bool es_posicion_valida(coordenada_t posicion)
 {
@@ -240,8 +232,6 @@ mesa_t generar_mesa_tentativa(juego_t      *juego,
 
     return mesa_tentativa;
 }
-
-// Fin funciones del TP1
 
 uint64_t calcular_distancia_manhattan(coordenada_t cord1, 
                                       coordenada_t cord2)
@@ -447,9 +437,9 @@ void terminar_fallo(cocina_t   *cocina,
 {
     if (cocina)
     {
-        free(cocina->platos_preparacion);
+        eliminar_vector_dinamico(cocina->platos_preparacion, &cocina->cantidad_preparacion);
         cocina->platos_preparacion = NULL;
-        free(cocina->platos_listos);
+        eliminar_vector_dinamico(cocina->platos_listos, &cocina->cantidad_listos);
         cocina->platos_listos = NULL;
     }
     

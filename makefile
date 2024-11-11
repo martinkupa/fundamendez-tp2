@@ -24,6 +24,9 @@ tests: ${TEST_DIR}/restaurant_utils.tests.o ${addsuffix .o,${LIBS}}
 release:
 	gcc *.c -o juego -std=c99 -Wall -Wconversion -Werror -lm	
 
+zip:
+	zip entrega.zip -r . -x entrega.zip .vscode/ .vscode/*
+
 clean:
 	clear
 	rm *.o ${TEST_DIR}/*.o juego test_suite

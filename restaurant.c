@@ -8,16 +8,11 @@
 #include <string.h>
 #include <stdio.h>
 
-// Declaraciones de funciones estaticas
-
-// Funciones del TP1
-
 /// @brief inicializa las mesas del juego
 /// @param generador si no es NULL, se utilizara para generar posiciones unicas
 /// @pre juego no debe ser NULL
 static void inicializar_mesas(juego_t     *juego, 
                               generador_t *generador);
-
 
 /// @brief Inicializa las herramientas del juego
 /// @param generador si no es NULL, se utilizara para generar posiciones unicas
@@ -60,8 +55,6 @@ static bool mover_linguini(juego_t      *juego,
 /// @pre `juego` no debe ser NULL
 static void cambiar_mopa(juego_t *juego);
 
-// Fin funciones del TP1
-
 /// @brief Interactua con todos los objetos del juego segun corresponda
 /// @pre `juego` no debe ser NULL
 static void interactuar_con_objetos(juego_t *juego);
@@ -87,13 +80,6 @@ static void cocinar_platillos(cocina_t *cocina);
 /// @pre `juego` no debe ser NULL
 /// @return La cantidad de pedidos tomados
 static int tomar_pedidos(juego_t *juego);
-// Fin declaraciones estaticas
-
-// Definiciones de funciones
-
-// Funciones publicas
-
-// Funciones del TP1
 
 void inicializar_juego(juego_t *juego) 
 {
@@ -111,12 +97,10 @@ void inicializar_juego(juego_t *juego)
 
     inicializar_mesas(juego, &generador);
 
-    // init cocina 
     juego->cocina = (cocina_t){
         .posicion = generar_posicion_libre(juego, &generador, false, false, false, false)
     };
 
-    // init linguini
     juego->mozo = (mozo_t){
         .posicion = generar_posicion_libre(juego, &generador, false, false, true, false)
     };
@@ -154,7 +138,7 @@ void realizar_jugada(juego_t *juego, char accion)
             break;
 
         case ACCION_PATIN:
-            bool puede_usar_patin = juego->mozo.cantidad_patines > 0 && !juego->mozo.patines_puestos;
+            bool puede_usar_patin = juego->mozo.cantidad_patines > 0 && !juego->mozo.patines_puestos && !juego->mozo.tiene_mopa;
             if (puede_usar_patin)
             {
                 juego->mozo.cantidad_patines--;
@@ -217,22 +201,14 @@ int estado_juego(juego_t juego)
     return juego_ganado ? GANO : PERDIO;
 }
 
-// Fin funciones del TP1
-
 void destruir_juego(juego_t *juego)
 {
     assert(juego != NULL && "juego no puede ser NULL");
-    free(juego->cocina.platos_listos);
+    eliminar_vector_dinamico(juego->cocina.platos_listos, &juego->cocina.cantidad_listos);
     juego->cocina.platos_listos = NULL;
-    free(juego->cocina.platos_preparacion);
+    eliminar_vector_dinamico(juego->cocina.platos_preparacion, &juego->cocina.cantidad_preparacion);
     juego->cocina.platos_preparacion = NULL;
 }
-
-// Fin funciones publicas
-
-// Funciones estaticas
-
-// Funciones del TP1
 
 static void inicializar_mesas(juego_t     *juego, 
                               generador_t *generador)
@@ -405,8 +381,6 @@ static void cambiar_mopa(juego_t *juego)
     } 
 }
 
-// Fin funciones del TP1
-
 static void interactuar_con_objetos(juego_t *juego)
 {
     assert(juego != NULL && "juego no puede ser NULL");
@@ -478,7 +452,6 @@ static void cocinar_platillos(cocina_t *cocina)
         pedido_t *platillo = &cocina->platos_preparacion[i];
         platillo->tiempo_preparacion--;
         bool esta_plato_listo = platillo->tiempo_preparacion <= 0;
-        // TODO maybe factor out into mover_platillo_listo() ?
         if (esta_plato_listo)
         {   
             pedido_t plato_listo = *platillo;
@@ -518,6 +491,4 @@ static int tomar_pedidos(juego_t *juego)
     }
     return pedidos_tomados;
 }
-
-// Fin funciones estaticas
 

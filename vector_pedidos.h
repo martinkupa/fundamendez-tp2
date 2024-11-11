@@ -6,15 +6,6 @@
 
 typedef pedido_t *vector_pedidos_t;
 
-/// @brief Reserva una instancia de vector_pedidos_t con capacidad para 
-///        almacenar `cantidad_pedidos` elementos. Los elementos son 
-///        inicializados a cero.
-/// @param cantidad_pedidos La cantidad de elementos que podra almacenar el
-///        vector.
-/// @return Un puntero al vector reservado, o NULL en caso de fallo.
-/// @pre cantidad_pedidos debe ser mayor a cero
-vector_pedidos_t construir_vector_dinamico(int cantidad_pedidos);
-
 /// @brief Agrega un nuevo pedido al tope del vector. En caso de fallo, `vector`
 ///        se deja intacto. Si `vector` es NULL, reserva un nuevo 
 ///        vector_pedidos_t

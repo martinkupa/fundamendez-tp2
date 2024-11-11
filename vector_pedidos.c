@@ -4,17 +4,6 @@
 #include "vector_pedidos.h"
 #include "vector_operaciones.h"
 
-
-
-vector_pedidos_t construir_vector_dinamico(int cantidad_pedidos)
-{
-    assert(cantidad_pedidos > 0 && "cantidad_pedidos debe ser mayor a 0");
-
-    vector_pedidos_t buffer_pedidos = calloc((size_t)cantidad_pedidos, sizeof(pedido_t));
-
-    return buffer_pedidos;
-}
-
 vector_pedidos_t agregar_pedido_dinamico(vector_pedidos_t vector, 
                                          int              *cantidad_pedidos, 
                                          pedido_t         pedido_nuevo)
