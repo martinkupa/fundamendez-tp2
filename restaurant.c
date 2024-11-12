@@ -148,7 +148,7 @@ void realizar_jugada(juego_t *juego, char accion)
 
         case ACCION_PEDIDO:
             if (!juego->mozo.tiene_mopa) 
-                jugada_realizada = tomar_pedidos(juego); 
+                tomar_pedidos(juego); 
             break; 
 
         default:
@@ -187,7 +187,13 @@ void mostrar_juego(juego_t juego)
         printf("Tienes la mopa en mano\n");
 
     if (juego.mozo.patines_puestos)
-        printf("Tienes los patines puestos\n"); 
+        printf("Tienes los patines puestos\n");
+    
+    if (juego.mozo.cantidad_pedidos >= MAX_PEDIDOS)
+        printf("No tienes espacio para mas pedidos\n");
+
+    if (juego.mozo.cantidad_bandeja >= MAX_BANDEJA)
+        printf("Tienes la bandeja llena\n"); 
 }
 
 int estado_juego(juego_t juego)
