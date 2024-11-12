@@ -478,7 +478,8 @@ static int tomar_pedidos(juego_t *juego)
 {
     assert(juego != NULL && "juego no puede ser NULL");
     int pedidos_tomados = 0;
-    for (int i = 0; i < juego->cantidad_mesas; i++)
+    bool hay_espacio_pedido = juego->mozo.cantidad_pedidos < MAX_PEDIDOS;
+    for (int i = 0; i < juego->cantidad_mesas && hay_espacio_pedido; i++)
     {
         mesa_t *mesa = &juego->mesas[i];
         bool hay_comensales = mesa->cantidad_comensales > 0;
@@ -487,6 +488,7 @@ static int tomar_pedidos(juego_t *juego)
             agregar_pedido(juego->mozo.pedidos, &juego->mozo.cantidad_pedidos, generar_pedido(juego, i));
             mesa->pedido_tomado = true;
             pedidos_tomados++;
+            hay_espacio_pedido = juego->mozo.cantidad_pedidos < MAX_PEDIDOS;
         }
     }
     return pedidos_tomados;
