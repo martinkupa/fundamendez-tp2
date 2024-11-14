@@ -517,3 +517,9 @@ bool mozo_alcanza_mesa(const mozo_t *mozo, const mesa_t *mesa)
     return posicion_dentro_rango_mesa(mozo->posicion, mesa, ALCANCE_MOZO); 
 }
 
+bool es_posicion_valida_mozo(const juego_t *juego,
+                             coordenada_t   nueva_posicion)
+{
+    assert(juego != NULL && "juego no debe ser NULL");
+    return es_posicion_valida(nueva_posicion) && !posicion_superpone_mesa(juego, nueva_posicion, false);
+}

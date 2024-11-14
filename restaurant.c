@@ -117,20 +117,27 @@ void realizar_jugada(juego_t *juego, char accion)
     bool jugada_realizada = false;
     switch (accion)
     {
+        coordenada_t delta_posicion;
         case ACCION_ARRIBA:
-            jugada_realizada = mover_linguini(juego, (coordenada_t){.fil=-1,.col=0});
-            break;
-
+            delta_posicion = (coordenada_t){.fil=-1,.col=0};
+            goto mover;
         case ACCION_DERECHA:
-            jugada_realizada = mover_linguini(juego, (coordenada_t){.fil=0,.col=+1});
-            break;
-
+            delta_posicion = (coordenada_t){.fil=0,.col=+1};
+            goto mover;
         case ACCION_ABAJO:
-            jugada_realizada = mover_linguini(juego, (coordenada_t){.fil=+1,.col=0});
-            break;
-
+            delta_posicion = (coordenada_t){.fil=+1,.col=0};
+            goto mover;
         case ACCION_IZQUIERDA:
-            jugada_realizada = mover_linguini(juego, (coordenada_t){.fil=0,.col=-1}); 
+            delta_posicion = (coordenada_t){.fil=0,.col=-1};
+        mover:
+            coordenada_t nueva_posicion = {.fil=juego->mozo.posicion.fil + delta_posicion.fil, .col=juego->mozo.posicion.col + delta_posicion.col};
+            if (es_posicion_valida_mozo(juego, nueva_posicion))
+            {
+                cocinar_platillos(&juego->cocina); 
+                mover_linguini(juego, delta_posicion);
+                jugada_realizada = true;
+            } else
+                juego->mozo.patines_puestos = false; 
             break;
 
         case ACCION_MOPA:
@@ -161,7 +168,6 @@ void realizar_jugada(juego_t *juego, char accion)
     {
         juego->movimientos++;
         disminuir_paciencia_comensales(juego);
-        cocinar_platillos(&juego->cocina);
         spawnear_entidades(juego); 
     }
 }
@@ -323,7 +329,7 @@ static bool mover_linguini(juego_t      *juego,
             .col = juego->mozo.posicion.col + delta_posicion.col
         };
 
-        if (!es_posicion_valida(nueva_posicion) || posicion_superpone_mesa(juego, nueva_posicion, false))
+        if (!es_posicion_valida_mozo(juego, nueva_posicion))
         {
             juego->mozo.patines_puestos = false;
         } else

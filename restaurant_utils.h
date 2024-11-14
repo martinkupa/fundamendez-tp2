@@ -271,5 +271,8 @@ void borrar_pedidos_mozo_por_mesa(mozo_t *mozo,
 bool mozo_alcanza_mesa(const mozo_t *mozo, 
                        const mesa_t *mesa);
 
-
+/// @brief Comprueba si `nueva_posicion` es un lugar valido para el mozo
+/// @pre juego no puede ser NULL
+bool es_posicion_valida_mozo(const juego_t *juego,
+                             coordenada_t  nueva_posicion);
 #endif

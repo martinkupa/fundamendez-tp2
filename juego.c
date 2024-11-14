@@ -25,6 +25,7 @@ int main(void)
     } while (!juego_terminado);
 
     // mostramos el resultado del ultimo turno
+    system("clear");
     mostrar_juego(juego);
 
     bool juego_ganado = estado_juego(juego) == GANO;
