@@ -25,7 +25,7 @@ release:
 	gcc *.c -o juego -std=c99 -Wall -Wconversion -Werror -lm	
 
 zip:
-	zip entrega.zip -r . -x entrega.zip .vscode/ .vscode/* consigna.pdf
+	zip entrega.zip -r . -x juego test_suite entrega.zip .vscode/ .vscode/* consigna.pdf *.o
 
 clean:
 	clear
