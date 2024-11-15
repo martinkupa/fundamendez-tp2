@@ -3,10 +3,10 @@ BUILD?=debug
 SANITIZER?=address
 
 TEST_DIR=tests
-LIBS=generador restaurant_utils restaurant entrada
+LIBS=generador restaurant_utils restaurant restaurant_io vector_pedidos vector_operaciones
 
 cflags.release= -Wall -Werror -Wconversion -std=c99
-cflags.debug= -I./ ${cflags.release} -fPIE -O0 -fanalyzer -g3 -fsanitize=${SANITIZER} -fsanitize=undefined -Wextra -Wundef -Wcast-align -Wstrict-overflow=5 -Wswitch-enum -Wshadow -Wpointer-arith -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wno-unused-parameter
+cflags.debug= -I./ ${cflags.release} -fPIE -O0 -fanalyzer -g3 -fsanitize=${SANITIZER} -fsanitize=undefined -Wextra -Wundef -Wcast-align -Wstrict-overflow=2 -Wswitch-enum -Wshadow -Wpointer-arith -Wcast-qual -Wstrict-prototypes -Wmissing-prototypes -Wno-unused-parameter
 
 
 CFLAGS=${cflags.${BUILD}}
@@ -24,6 +24,10 @@ tests: ${TEST_DIR}/restaurant_utils.tests.o ${addsuffix .o,${LIBS}}
 release:
 	gcc *.c -o juego -std=c99 -Wall -Wconversion -Werror -lm	
 
+zip:
+	zip entrega.zip -r . -x juego test_suite entrega.zip .vscode/ .vscode/* consigna.pdf *.o
+
 clean:
 	clear
-	rm *.o ${TEST_DIR}/*.o juego test_suite
+	rm -f *.o ${TEST_DIR}/*.o juego test_suite
+	rm -f entrega.zip
