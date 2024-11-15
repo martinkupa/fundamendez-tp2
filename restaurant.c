@@ -81,6 +81,10 @@ static void cocinar_platillos(cocina_t *cocina);
 /// @return La cantidad de pedidos tomados
 static int tomar_pedidos(juego_t *juego);
 
+/// @brief Devuelve la variacion en la posicion correspondiente a la accion
+/// @pre accion debe ser una accion valida en el juego
+static coordenada_t calcular_delta_posicion(char accion);
+
 void inicializar_juego(juego_t *juego) 
 {
     // un generador de posiciones unicas
@@ -117,19 +121,11 @@ void realizar_jugada(juego_t *juego, char accion)
     bool jugada_realizada = false;
     switch (accion)
     {
-        coordenada_t delta_posicion;
         case ACCION_ARRIBA:
-            delta_posicion = (coordenada_t){.fil=-1,.col=0};
-            goto mover;
         case ACCION_DERECHA:
-            delta_posicion = (coordenada_t){.fil=0,.col=+1};
-            goto mover;
         case ACCION_ABAJO:
-            delta_posicion = (coordenada_t){.fil=+1,.col=0};
-            goto mover;
         case ACCION_IZQUIERDA:
-            delta_posicion = (coordenada_t){.fil=0,.col=-1};
-        mover:
+            coordenada_t delta_posicion = calcular_delta_posicion(accion);
             coordenada_t nueva_posicion = {.fil=juego->mozo.posicion.fil + delta_posicion.fil, .col=juego->mozo.posicion.col + delta_posicion.col};
             if (es_posicion_valida_mozo(juego, nueva_posicion))
             {
@@ -506,3 +502,26 @@ static int tomar_pedidos(juego_t *juego)
     return pedidos_tomados;
 }
 
+
+static coordenada_t calcular_delta_posicion(char accion)
+{
+    switch (accion)
+    {
+        case ACCION_ARRIBA:
+            return (coordenada_t){.fil=-1,.col=0};
+        case ACCION_DERECHA:
+           return (coordenada_t){.fil=0,.col=+1};
+        case ACCION_ABAJO:
+           return (coordenada_t){.fil=+1,.col=0};
+        case ACCION_IZQUIERDA:
+           return (coordenada_t){.fil=0,.col=-1};
+        case ACCION_MOPA:
+        case ACCION_PATIN:
+        case ACCION_PEDIDO:
+            return (coordenada_t){}; 
+        default:
+            assert(false && "calcular_delta_posicion() recibio una accion no valida");
+            fprintf(stderr, "[ERROR]: calcular_delta_posicion() recibio una accion invalida\n");
+            return (coordenada_t){};
+    }
+}

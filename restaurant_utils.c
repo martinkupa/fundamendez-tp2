@@ -340,8 +340,8 @@ void interactuar_con_cocina(mozo_t   *mozo,
     bool bandeja_llena = mozo->cantidad_bandeja >= MAX_BANDEJA;
     while (!cocina_agotada && !bandeja_llena)
     {
-        pedido_t pedido_listo = cocina->platos_listos[cocina->cantidad_listos-1];
-        vector_pedidos_t nuevo_vector = eliminar_pedido_dinamico(cocina->platos_listos, &cocina->cantidad_listos, cocina->cantidad_listos-1);
+        pedido_t pedido_listo = cocina->platos_listos[0];
+        vector_pedidos_t nuevo_vector = eliminar_pedido_dinamico(cocina->platos_listos, &cocina->cantidad_listos, 0);
         bool sin_memoria = !nuevo_vector && cocina->cantidad_listos != 0;
         if (sin_memoria)
             terminar_fallo(cocina, "Sin memoria! Terminando...");
